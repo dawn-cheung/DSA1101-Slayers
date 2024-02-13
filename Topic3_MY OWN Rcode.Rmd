@@ -254,36 +254,23 @@ Run function F3 and report the answers obtained for two cases: (salary = $7,000 
 $1,200,000) and (salary = $4,000, price = $800,000).
 
 ```{r, eval=TRUE,echo=TRUE}
-MOREmoney <- function(salary, rate) {
-  price = 1200000 #cost of house
-  down_payment = price*0.25
-  saved = 10000 #this is for 1st month. unsure if need to start from month 0
-  
-  #ok the months r monthing now
-  month_counter = 0
-  for (i in 1:years_goal) {
-    month_counter = month_counter + 1
-    saved = saved * 1.02 #DOES NOT INCLUDE THE SALARY FOR THIS MONTH
-    if (month_counter%%4 == 0) {
-      salary = salary * (1 + rate)
-    }
-  }
-  paste0("with your improved (insane) salary , you need ",month_counter," months to get that house. This is longer than my will to live.")
-}
 
-F3 <- function(salary, years_goal) {
-  price = 1200000 #cost of house
+F3 <- function(salary, years_goal, price) {
+  #price = 1200000 #cost of house
   down_payment = price*0.25
   saved = 10000
-  months = 0
-  down_payment = down_payment-(10000*1.02)
-  for (i in 1:years_goal) {
-    saved = saved * 1.02
-    if (month_counter%%4 == 0) {
-      salary = salary * (1 + 0.01)
-    }
+  month_counter = years_goal * 12
+  down_payment = down_payment-(10000)*(1.02^month_counter)
+  print(down_payment) #debug line
+  dem_interest = 0
+  for (i in 1:(month_counter - 1)){
+    dem_interest = dem_interest + (1.02^i)
   }
-  down_payment = down_payment - saved
-  
+  final_p = ((down_payment/dem_interest)/salary)*100
+  paste0("you will need to save ",final_p,"% of your salary")
 }
+
+F3(7000, 5, 1200000)
+F3(4000, 5, 800000)
+
 ```

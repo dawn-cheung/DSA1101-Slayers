@@ -637,38 +637,27 @@ payment. The proportion of saving should be of 2 decimal places.</p>
 <p>Run function F3 and report the answers obtained for two cases:
 (salary = $7,000 and price = $1,200,000) and (salary = $4,000, price =
 $800,000).</p>
-<pre class="r"><code>MOREmoney &lt;- function(salary, rate) {
-  price = 1200000 #cost of house
-  down_payment = price*0.25
-  saved = 10000 #this is for 1st month. unsure if need to start from month 0
-  
-  #ok the months r monthing now
-  month_counter = 0
-  for (i in 1:years_goal) {
-    month_counter = month_counter + 1
-    saved = saved * 1.02 #DOES NOT INCLUDE THE SALARY FOR THIS MONTH
-    if (month_counter%%4 == 0) {
-      salary = salary * (1 + rate)
-    }
-  }
-  paste0(&quot;with your improved (insane) salary , you need &quot;,month_counter,&quot; months to get that house. This is longer than my will to live.&quot;)
-}
-
-F3 &lt;- function(salary, years_goal) {
-  price = 1200000 #cost of house
+<pre class="r"><code>F3 &lt;- function(salary, years_goal, price) {
+  #price = 1200000 #cost of house
   down_payment = price*0.25
   saved = 10000
-  months = 0
-  down_payment = down_payment-(10000*1.02)
-  for (i in 1:years_goal) {
-    saved = saved * 1.02
-    if (month_counter%%4 == 0) {
-      salary = salary * (1 + 0.01)
-    }
+  month_counter = years_goal * 12
+  down_payment = down_payment-(10000)*(1.02^month_counter)
+  print(down_payment)
+  dem_interest = 0
+  for (i in 1:(month_counter - 1)){
+    dem_interest = dem_interest + (1.02^i)
   }
-  down_payment = down_payment - saved
-  
-}</code></pre>
+  final_p = ((down_payment/dem_interest)/salary)*100
+  paste0(&quot;you will need to save &quot;,final_p,&quot;% of your salary&quot;)
+}
+
+F3(7000, 5, 1200000)</code></pre>
+<pre><code>## [1] 267189.7</code></pre>
+<pre><code>## [1] &quot;you will need to save 33.7633226518029% of your salary&quot;</code></pre>
+<pre class="r"><code>F3(4000, 5, 800000)</code></pre>
+<pre><code>## [1] 167189.7</code></pre>
+<pre><code>## [1] &quot;you will need to save 36.9720069661709% of your salary&quot;</code></pre>
 </div>
 
 
