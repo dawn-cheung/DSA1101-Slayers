@@ -1,0 +1,49 @@
+"0","library(tidyverse)"
+"0","library(dplyr)"
+"0","collegesdb <- read.csv(""~/Github/DSA1101 Slayers/datasets/Colleges.txt"", sep = ""\t"", header = TRUE) #THIS THE ""\t"" PLS HOW "
+"0","attach(collegesdb)"
+"2","The following objects are masked from collegesdb (pos = 3):
+
+    Acceptance, DPerStudent, GradPer, PerPhD,
+    SAT, School, School_Type, Top.10p
+
+"
+"2","The following objects are masked from collegesdb (pos = 4):
+
+    Acceptance, DPerStudent, GradPer, PerPhD,
+    SAT, School, School_Type, Top.10p
+
+"
+"2","The following objects are masked from collegesdb (pos = 5):
+
+    Acceptance, DPerStudent, GradPer, PerPhD,
+    SAT, School, School_Type, Top.10p
+
+"
+"2","The following objects are masked from collegesdb (pos = 6):
+
+    Acceptance, DPerStudent, GradPer, PerPhD,
+    SAT, School, School_Type, Top.10p
+
+"
+"0","#plan: get RSS first then derivative it?? then solve for intercept and gradient???"
+"0","#ok no thats impossible how would u even get RSS direct"
+"0","#B1 = (sum(Acceptance*SAT) - sum(Acceptance)*sum(SAT))/(sum(SAT^2)-(sum(SAT)^2)/n)"
+"0","#B0 = (sum(Acceptance*SAT) - B1*(sum(SAT)^2))/(sum(SAT))"
+"0","#those didnt work"
+"0",""
+"0",""
+"0","xbar = (1/length(SAT))*sum(SAT)"
+"0","ybar = (1/length(Acceptance))*sum(Acceptance)"
+"0",""
+"0","B1 = (sum(SAT-xbar)*sum(Acceptance-ybar))/sum((SAT-xbar)^2)"
+"0",""
+"0","B0 = ""lol idk"""
+"0",""
+"0",""
+"0",""
+"0","paste0(""equation is: y hat = "", B0, "" + "", B1, ""x"")"
+"1","[1]"
+"1"," ""equation is: y hat = lol idk + 1.62947227451182e-30x"""
+"1","
+"

@@ -1,0 +1,289 @@
+---
+title: "DSA1101 Topic 3: Linear Regression"
+author: "Dawn Cheung"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<style>
+p.comment {
+background-color: #DBDBDB;
+padding: 10px;
+border: 1px solid black;
+margin-left: 25px;
+border-radius: 5px;
+font-style: italic;
+}
+
+</style>
+
+## Definition of Terms
+
+
+### Supervised Learning Methods
+
+- Methods used in *making predictions about the future*
+
+- It *predicts the response variable* in the future
+
+- Dataset used must have the response variable 
+  - must both know which is the response variable (if any) & the values of it [ie x and y are known and can be idenified]
+
+- x is the predictors, y is the outcome (response variable)
+  - Assumes model as: y ≈ f(x)
+
+
+- E.g. linear regression models where x is just 1 variable
+
+- Hence determines given a certain predictor values for x, what is the most likely corresponding value of y
+
+
+### Linear Regression 
+- An analytical technique that models the relationship between several input variables and a continuos outcome variable.
+
+-Assumes r/s btwn input variables and outcome variable is linear
+
+- the "linearity" is in terms of the coefficients
+```{r,eval=TRUE, echo=FALSE}
+knitr::include_graphics("~/GitHub/DSA1101 Slayers/Pictures/photo_topic 3 linear regression_w.jpg")
+```
+
+### HDB Resale Dataset
+```{r, eval=TRUE,echo=TRUE}
+# Enter code here
+library(tidyverse)
+library(dplyr)
+resale <- read.csv("~/GitHub/DSA1101 Slayers/datasets/hdbresale_reg.csv")
+head(resale[,2:7]) #ignore 1st column (ID of flats)
+head(resale[,8:11])
+```
+floor_area_sqm is the 'independent variable', resale_price is the response variable
+<br>
+
+### Simple Linear Regression (SLR)
+
+```{r,eval=TRUE, echo=FALSE}
+knitr::include_graphics("~/GitHub/DSA1101 Slayers/Pictures/SLR pic 2.jpg")
+```
+
+- only 1 input variable (ie only got x). if there were more than 1 input vairable then its multiple linear regression model
+
+### Ordinary Least Squares (OLS) Method
+```{r,eval=TRUE, echo=FALSE}
+knitr::include_graphics("~/GitHub/DSA1101 Slayers/Pictures/OLS.jpg")
+```
+- 
+Linear regression of HDB unit resale price as a function of floor area in square meters
+**Solution:**
+
+```{r, eval=TRUE, echo=TRUE}
+price = resale$resale_price #regressor 
+area = resale$floor_area_sqm #predictor
+
+lm(price ~ area)$coeff
+
+```
+the fitted model is then ŷ 115145.730 + 3117.212x
+
+<br>
+
+### Goodness-of-fit Model
+
+
+- F-test
+
+- Coefficient of determination, R^2
+
+
+**F-test:**
+
+small p-value => strong evidence against H0 => H1 (alt H) is accepted => model is highly significant
+
+large p-value => cannot eliminate H0 => variables chosen might not be helpful at all in predicting the response
+```{r, eval=TRUE,echo=TRUE}
+hdb.model = lm(price ~ area)
+summary(hdb.model)
+
+
+#OR just
+summary(hdb.model)$fstatistic #and take the first value
+#alt is summary(hdb.model)$fstatistic[1]
+
+```
+Since "F-statistic: 1.244e+04 on 1 and 6053 DF,  p-value: < **2.2e-16**" p is smaller than 0.05 => strong evidence against the null 
+
+**R^2:**
+
+```{r, eval=TRUE,echo=TRUE}
+#also summary(hdb.model) works just fine too
+summary(hdb.model)$r.squared
+
+```
+Multiple R-squared:  0.6727, Adjusted R-squared:  0.6727
+<br>
+
+
+
+
+<br>
+
+
+## TUTORIAL QUESTIONS
+
+1 Read the data from the file Colleges.txt. Consider a simple linear regression of percentage of applicants accepted (Acceptance) on the median combined math and verbal SAT score of students (SAT),
+called Model M1.
+
+
+**1a) Write your own function in R to derive the equation of Model M1.**
+
+```{r, eval=TRUE,echo=TRUE}
+library(tidyverse)
+library(dplyr)
+collegesdb <- read.csv("~/Github/DSA1101 Slayers/datasets/Colleges.txt", sep = "\t", header = TRUE) #THIS THE "\t" PLS HOW 
+attach(collegesdb)
+#plan: get RSS first then derivative it?? then solve for intercept and gradient???
+#ok no thats impossible how would u even get RSS direct
+#B1 = (sum(Acceptance*SAT) - sum(Acceptance)*sum(SAT))/(sum(SAT^2)-(sum(SAT)^2)/n)
+#B0 = (sum(Acceptance*SAT) - B1*(sum(SAT)^2))/(sum(SAT))
+#those didnt work
+
+
+xbar = (1/length(SAT))*sum(SAT)
+ybar = (1/length(Acceptance))*sum(Acceptance)
+
+B1 = (sum(SAT-xbar)*sum(Acceptance-ybar))/sum((SAT-xbar)^2)
+
+B0 = "lol idk"
+
+
+
+paste0("equation is: y hat = ", B0, " + ", B1, "x")
+```
+<br>
+
+
+**1b) Use function lm() in R to derive the equation of Model M1. Compare with your answer in part
+(a).**
+
+```{r, eval=TRUE,echo=TRUE}
+# Enter code here
+M = lm(Acceptance ~ SAT)
+summary(M)
+#M$coefficients
+#summary(M)$coefficients
+#summary(M)$coefficients[1,1]
+paste0("equation is: y hat = ", M$coefficients[2], " + ", summary(M)$coefficients[1,1], "x") #yay both work fine
+```
+<br>
+
+2. Consider the question given in Tutorial 1.
+
+**2a) For the first question in Tutorial 1, use the code to define a function, called F1, where the argument
+of F1 is salary. Run function F1 for the two cases mentioned.**
+
+
+```{r, eval=TRUE,echo=TRUE}
+F1 <- function(salary) {
+  price = 1200000
+  down_payment = price*0.25 #cost of house la
+  saved = 10000
+  
+  #ok the months r monthing now
+  month_counter = 0
+  while (saved < down_payment) {
+    month_counter = month_counter + 1
+    saved = saved * 1.02 #DOES NOT INCLUDE THE SALARY FOR THIS MONTH
+    saved = saved + (salary * 0.4)
+  }
+  paste0("you need ",month_counter," months to get that house. This is longer than my will to live.")
+}
+
+F1(7000)
+F1(10000)
+```
+
+
+**2b) For the second question in Tutorial 1, use the code to define a function, called F2, where F2
+has two arguments: salary and rate. Run function F2 for the two cases mentioned to obtain the
+results.**
+
+
+```{r, eval=TRUE,echo=TRUE}
+# Enter code here
+F2 <- function(salary, rate) {
+  price = 1200000 #cost of house
+  down_payment = price*0.25
+  saved = 10000 
+  
+  #ok the months r monthing now
+  month_counter = 0
+  while (saved < down_payment) {
+    month_counter = month_counter + 1
+    saved = saved * 1.02 #DOES NOT INCLUDE THE SALARY FOR THIS MONTH
+    saved = saved + (salary * 0.4)
+    if (month_counter%%4 == 0) {
+      salary = salary * (1 + rate)
+    }
+  }
+  paste0("with your improved (insane) salary , you need ",month_counter," months to get that house. This is longer than my will to live.")
+}
+
+F2(7000, 0.02)
+F2(10000, 0.01)
+```
+
+2c) From question the settings given in Tutorial 1, we know that both the percentage of your salary
+that you save each month and the rate of raising salary every 4 months affects how long it takes
+you to save for a down payment.
+
+Now, suppose the raise in salary every 4 months is fixed at 0.01 and you want to set a particular
+goal, e.g. to be able to afford the down payment in five years for a house with the price is of your
+choice, price. **How much should you save each month instead of 40% to achieve the goal?** In this
+problem, you are going to write a function, called F3, which helps to answer that question.
+
+You are now going to **find the best propotion of savings monthly from your salary to achieve a
+down payment in five years**. Since hitting this exactly is a challenge, we simply want your total
+savings to be at least as the same as the required down payment. The proportion of saving should
+be of 2 decimal places.
+
+Run function F3 and report the answers obtained for two cases: (salary = $7,000 and price =
+$1,200,000) and (salary = $4,000, price = $800,000).
+
+```{r, eval=TRUE,echo=TRUE}
+MOREmoney <- function(salary, rate) {
+  price = 1200000 #cost of house
+  down_payment = price*0.25
+  saved = 10000 #this is for 1st month. unsure if need to start from month 0
+  
+  #ok the months r monthing now
+  month_counter = 0
+  for (i in 1:years_goal) {
+    month_counter = month_counter + 1
+    saved = saved * 1.02 #DOES NOT INCLUDE THE SALARY FOR THIS MONTH
+    if (month_counter%%4 == 0) {
+      salary = salary * (1 + rate)
+    }
+  }
+  paste0("with your improved (insane) salary , you need ",month_counter," months to get that house. This is longer than my will to live.")
+}
+
+F3 <- function(salary, years_goal) {
+  price = 1200000 #cost of house
+  down_payment = price*0.25
+  saved = 10000
+  months = 0
+  down_payment = down_payment-(10000*1.02)
+  for (i in 1:years_goal) {
+    saved = saved * 1.02
+    if (month_counter%%4 == 0) {
+      salary = salary * (1 + 0.01)
+    }
+  }
+  down_payment = down_payment - saved
+  
+}
+```
