@@ -143,25 +143,29 @@ called Model M1.
 ```{r, eval=TRUE,echo=TRUE}
 library(tidyverse)
 library(dplyr)
-collegesdb <- read.csv("~/Github/DSA1101 Slayers/datasets/Colleges.txt", sep = "\t", header = TRUE) #THIS THE "\t" PLS HOW 
+collegesdb <- read.csv("~/Github/DSA1101 Slayers/datasets/Colleges.txt", sep = "\t", header = TRUE) #THIS THE "\t" PLS HOW " "
 attach(collegesdb)
 #plan: get RSS first then derivative it?? then solve for intercept and gradient???
 #ok no thats impossible how would u even get RSS direct
-#B1 = (sum(Acceptance*SAT) - sum(Acceptance)*sum(SAT))/(sum(SAT^2)-(sum(SAT)^2)/n)
-#B0 = (sum(Acceptance*SAT) - B1*(sum(SAT)^2))/(sum(SAT))
+B1 = (sum(Acceptance*SAT) - mean(Acceptance)*sum(SAT))/(sum(SAT^2)-mean(SAT)*sum(SAT))
+B0 = (sum(Acceptance*SAT) - B1*(sum(SAT)^2))/(sum(SAT))
 #those didnt work
+
+simple <- function(x, y) {
+  B1 = (sum(x*y) - mean(y)*sum(x))/(sum(x^2)-mean(x)*sum(x))
+  B0 = mean(y)-(B1*mean(x))
+  paste0("equation is: y hat = ", B0, " + ", B1, "x") #or return statement, utu
+}
 
 
 xbar = (1/length(SAT))*sum(SAT)
 ybar = (1/length(Acceptance))*sum(Acceptance)
 
-B1 = (sum(SAT-xbar)*sum(Acceptance-ybar))/sum((SAT-xbar)^2)
-
-B0 = "lol idk"
+#B1 = (sum(SAT-xbar)*sum(Acceptance-ybar))/sum((SAT-xbar)^2)
 
 
+simple(SAT, Acceptance) #instanciation: calling your function w/ parameters lol
 
-paste0("equation is: y hat = ", B0, " + ", B1, "x")
 ```
 <br>
 
@@ -171,11 +175,10 @@ paste0("equation is: y hat = ", B0, " + ", B1, "x")
 
 ```{r, eval=TRUE,echo=TRUE}
 # Enter code here
-M = lm(Acceptance ~ SAT)
+M = lm(Acceptance ~ SAT) # OR u can do lm(Acceptance ~ SAT, collegesdb) where 2nd argument is database
+?lm
 summary(M)
-#M$coefficients
-#summary(M)$coefficients
-#summary(M)$coefficients[1,1]
+
 paste0("equation is: y hat = ", M$coefficients[2], " + ", summary(M)$coefficients[1,1], "x") #yay both work fine
 ```
 <br>
@@ -255,7 +258,7 @@ $1,200,000) and (salary = $4,000, price = $800,000).
 
 ```{r, eval=TRUE,echo=TRUE}
 
-F3 <- function(salary, years_goal, price) {
+F3 <- function(salary, years_goal, price) { #can give default values for these arguments too
   #price = 1200000 #cost of house
   down_payment = price*0.25
   saved = 10000
@@ -266,11 +269,19 @@ F3 <- function(salary, years_goal, price) {
   for (i in 1:(month_counter - 1)){
     dem_interest = dem_interest + (1.02^i)
   }
+  down_payment = down_payment/dem_interest
+  for (i in 1:(month_counter - 1)){
+    if (month_counter%%4 == 0) {
+      salary = salary * (1 + rate)
+    }
+  }
   final_p = ((down_payment/dem_interest)/salary)*100
   paste0("you will need to save ",final_p,"% of your salary")
 }
 
 F3(7000, 5, 1200000)
 F3(4000, 5, 800000)
+
+#ALT METHOD: try ALL proportions ie seq(0.01, 1,by = 0.01) and really try every single percentage until we hit a portion that takes lesser than 5 years to achieve, OR when percentage = 100 in which even if all your salary goes to the house and u STILL cant afford in 5yrs
 
 ```

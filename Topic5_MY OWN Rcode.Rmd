@@ -1,0 +1,165 @@
+---
+title: 'DSA1101 Topic 5: Decision Trees'
+author: "Dawn Cheung"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+## Bank Sample Dataset
+
+```{r pressure, echo=TRUE}
+library(tidyverse)
+library(class)
+library(rpart)
+library(rpart.plot) #remember its a diff package as rpart!!
+bankdata = read.csv("~/Github/DSA1101 Slayers/datasets/bank-sample.csv")
+attach(bankdata)
+
+#response variable: subscribed (yes/no)
+#we have 16 features => not using all (we will use 8)
+
+fit <- rpart(subscribed ~ job + marital + education + default + housing + loan + contact + poutcome,
+             method = "class", #tells R to return the category of response (yes or no)
+             data = bankdata,
+             control = rpart.control(minsplit = 1), #tells R how to split the node; minsplit = 1 means a branch is created when there is at least 1 observation in that branch => tells R how big we want the tree to be
+             parms = list(split = "information")) # what criteria to use to choose the root node & internal nodes; either info gained or gini index; default val is gini
+
+summary(fit)
+
+#to fit the plotted tree:
+rpart.plot(fit, type = 4, extra = 2, clip.right.labs = FALSE)
+```
+
+Ok notice the first node shown is a modal category of the response ie it starts with a no (which is the majority)
+
+So not the root node (which needs to be an input vairable)
+
+# Choosing the root node
+## Why was poutcome selected as the decsion variable at the root node?
+i.e. why was poutcome chosen by the algorithm  to be the first split? finding the most useful feature in the dataset to add to the tree
+
+Selecting the most informative attribute based on 2 basic measures:
+- Entropy: the impurity of an attribute
+- Information gain: the reduction in purity should a split be made there
+
+## Purity
+The probability of the corresponding class
+
+If we only look at that specific response variables. 
+
+## Entropy
+
+
+## Traversing down the tree, how are the subsequent decision variables at each node selected?
+i.e. understanding how the algorithm decides what should be a branch and what should not be made into a branch
+
+### Playing with maxdepth, minsplit, cp (complexity parameter) in control = rpart.control()
+
+```{r nopressure, echo=TRUE}
+
+#maxdepth = 4:
+fit <- rpart(subscribed ~ job + marital + education + default + housing + loan + contact + poutcome,
+             method = "class", #tells R to return the category of response (yes or no)
+             data = bankdata,
+             control = rpart.control(maxdepth = 4), #tells R how to split the node; minsplit = 1 means a branch is created when there is at least 1 observation in that branch => tells R how big we want the tree to be
+             parms = list(split = "information")) 
+
+rpart.plot(fit, type = 4, extra = 2, clip.right.labs = FALSE)
+
+
+#maxdepth = 1:
+fit <- rpart(subscribed ~ job + marital + education + default + housing + loan + contact + poutcome,
+             method = "class", #tells R to return the category of response (yes or no)
+             data = bankdata,
+             control = rpart.control(maxdepth = 1), #tells R how to split the node; minsplit = 1 means a branch is created when there is at least 1 observation in that branch => tells R how big we want the tree to be
+             parms = list(split = "information")) 
+
+rpart.plot(fit, type = 4, extra = 2, clip.right.labs = FALSE)
+
+#minsplit = 15:
+fit <- rpart(subscribed ~ job + marital + education + default + housing + loan + contact + poutcome,
+             method = "class", #tells R to return the category of response (yes or no)
+             data = bankdata,
+             control = rpart.control(minsplit = 15), #tells R how to split the node; minsplit = 1 means a branch is created when there is at least 1 observation in that branch => tells R how big we want the tree to be
+             parms = list(split = "information")) # what criteria to use to choose the root node & internal nodes; either info gained or gini index; default val is gini
+
+#to fit the plotted tree:
+rpart.plot(fit, type = 4, extra = 2, clip.right.labs = FALSE)
+
+#cp = 0.001
+fit <- rpart(subscribed ~ job + marital + education + default + housing + loan + contact + poutcome,
+             method = "class", #tells R to return the category of response (yes or no)
+             data = bankdata,
+             control = rpart.control(cp = 0.001), #tells R how to split the node; minsplit = 1 means a branch is created when there is at least 1 observation in that branch => tells R how big we want the tree to be
+             parms = list(split = "information")) # what criteria to use to choose the root node & internal nodes; either info gained or gini index; default val is gini
+rpart.plot(fit, type = 4, extra = 2, clip.right.labs = FALSE)
+```
+
+As maxdepth increases, tree becomes larger.
+
+As minsplit increases, tree becomes smaller.
+
+As cp decreases, tree becomes larger. [default is cp = 0.01]
+
+
+### How to test which parameters are best? Just use for loops to try each parameter and attain accuracy lol
+
+
+### Playing with varlen, faclen, clip.right.labs, type in rpart.plot()
+- varlen = variable length
+  - 0: full name will be written
+- faclen = factor length
+  - 0: full name will be written
+- clip.right.labs literally means the name of the variable wont be repeated on the right branch
+  - TRUE or FALSE
+  
+MEANING OF THE TREE WILL REMAIN THE SAME
+```{r kejkjpressure, echo=TRUE}
+
+
+fit <- rpart(subscribed ~ job + marital + education + default + housing + loan + contact + poutcome,
+             method = "class", #tells R to return the category of response (yes or no)
+             data = bankdata,
+             control = rpart.control(maxdepth = 4), #tells R how to split the node; minsplit = 1 means a branch is created when there is at least 1 observation in that branch => tells R how big we want the tree to be
+             parms = list(split = "information")) 
+
+#type = 2:
+rpart.plot(fit, type = 2, extra = 2, clip.right.labs = FALSE)
+```
+
+### Analysis of Fitted Tree
+modal catagory => the major/majority catagory
+```{r kekpressure, echo=TRUE}
+fit <- rpart(subscribed ~ job + marital + education + default + housing + loan + contact + poutcome,
+             method = "class", #tells R to return the category of response (yes or no)
+             data = bankdata,
+             control = rpart.control(maxdepth = 4), #tells R how to split the node; minsplit = 1 means a branch is created when there is at least 1 observation in that branch => tells R how big we want the tree to be
+             parms = list(split = "information")) 
+
+#type = 2:
+rpart.plot(fit, type = 2, extra = 2, clip.right.labs = FALSE)
+```
+
+how model decides how to structure the tree: by splitting at this depth, it reduces the entropy the most
+
+
+## DTdata.csv [play_decsion]
+```{r DT data, echo=TRUE}
+library(rpart)
+library(rpart.plot) #remember its a diff package as rpart!!
+play_decsion = read.csv("~/Github/DSA1101 Slayers/datasets/DTdata.csv")
+attach(play_decsion)
+
+newdata = data.frame(Outlook = "rainy", Temperature = "mild", Humidity = "")
+
+```
+
+how model decides how to structure the tree: by splitting at this depth, it reduces the entropy the most
+

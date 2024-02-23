@@ -1,0 +1,324 @@
+---
+title: "DSA1101 Topic 4: K-Nearest Neighbours"
+author: "Dawn Cheung"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<style>
+p.comment {
+background-color: #DBDBDB;
+padding: 10px;
+border: 1px solid black;
+margin-left: 25px;
+border-radius: 5px;
+font-style: italic;
+}
+
+</style>
+
+## Definition of Terms
+ - has n number of training points
+ - features denoted as x
+ - categorical response is y
+ - with info x, the predicted y is Ĝ(x) [G hat (x)] or really y hat is fine too
+ - since we only consider binary responses (ie 0 or 1) only, the prediction Ĝ(x) is either 0 or 1 too
+
+
+
+### KNN
+
+```{r,eval=TRUE, echo=FALSE}
+knitr::include_graphics("~/GitHub/DSA1101 Slayers/Pictures/photo_knn small k.jpg")
+```
+
+### Scaling x
+
+```{r,eval=TRUE, echo=TRUE}
+market <- read.csv("~/GitHub/DSA1101 Slayers/datasets/Smarket.csv")
+attach(market)
+Lag1 = scale(Lag1) # to standardise all the predictors (the x es)
+```
+To be done BEFORE APPLYING KNN
+
+Will not be needed for stock market dataset cus lap1 to lap 5 are all *similar in magnitude* => will not change the outcome a lot
+
+### Stock Market Dataset
+Predicting the direction of the stock market: whether it goes up or down => 1 is up, 0 is down
+
+knn() will require the following arguments:
+
+  - Matrix of predictors/features x for training
+  - Matrix of predictors/features x to be predicted
+  - Vector containing class labels for the training data
+  - Value for k (number of nearest neighbours for the classifier)
+```{r, eval=TRUE,echo=TRUE}
+# Enter code here
+library(class)
+library(dplyr)
+market <- read.csv("~/GitHub/DSA1101 Slayers/datasets/Smarket.csv")
+head(market)
+# we see that X is the row number,
+# Lag 1 to 5, the percentage returns for the 5 prev days => these are our predictors
+dim(market) #get no. rows and columns
+attach(market)
+```
+
+Gameplan:
+
+ - all years before 2005 (ie 2001 - 2004) will be training set
+ - year 2005 will be testing set
+
+```{r,eval=TRUE, echo=TRUE}
+#indexes of all the rows where Year < 2005
+index.train = which(Year < 2005) #returns a vector
+
+#create data frame that has all the rows before 2005
+train.data = market[index.train, ] #REMEMBER THE ,] BC MARKET IS NOT A LIST, ITS A DATAFRAME so u need specify the rows and columns
+# leave blank ie [index.train,(empty)] = returns all columns
+
+#the rest of the rows go to test data
+test.data = market[-index.train, ]
+
+dim(train.data); dim(test.data) #dim is dimentions hehe
+```
+Getting arguments 1 and 2
+```{r,eval=TRUE, echo=TRUE}
+#now we're filtering by all the columns we're gonna use, for both test and train datasets. idk why we're doing this after spiltting them, OK NOW I GETS cus we're gonna split them further into predictors and responses hehe
+#REMEMBER THESE ARE DATAFRAMES SO SPECIFY ROW AND COLUMN
+train.x = train.data[ ,c("Lag1", "Lag2", "Lag3", "Lag4", "Lag5")]
+test.x = test.data[ ,c("Lag1", "Lag2", "Lag3", "Lag4", "Lag5")]
+
+```
+Getting argument 3
+```{r,eval=TRUE, echo=TRUE}
+#now get the responses to train & test the algorithm
+train.y = train.data[ ,c("Direction")]
+test.y = test.data[ ,c("Direction")] #these are the 'real' responses, NOTE it is NOT needed for knn()
+
+```
+
+### OK WE FORMING THE MODEL NOW
+```{r,eval=TRUE, echo=TRUE}
+library(class)
+
+knn.pred = knn(train.x, test.x, train.y, k = 1)
+
+knn.pred #returns the prediction for the response of the test points i.e. predictions for text.x
+
+```
+
+##### So how did the model do?
+```{r,eval=TRUE, echo=TRUE}
+data.frame(test.y, knn.pred) %>%
+  slice(1:35) #lol to shorten the doc
+
+table(test.y, knn.pred)
+
+```
+
+<br>
+
+#### Diagnostics
+Evaluation of the classifier's performance
+
+More notations:
+
+ - For 2 class labels, C is positive and C' (C prime) is negative
+   - True Positive: predict C, when actually C
+   - True Negative: predict C', when actually C'
+   - False Positive: predict C, when actually C'
+   - False Negative: predict C', when actually C
+   
+##### Confusion Matrix
+```{r,eval=TRUE, echo=FALSE}
+knitr::include_graphics("~/GitHub/DSA1101 Slayers/Pictures/Confusion Matrix Pic.jpg")
+knitr::include_graphics("~/GitHub/DSA1101 Slayers/Pictures/CM spam emails.jpg")
+```
+
+###### Criteria to Evaluate
+
+ - Accuracy
+ - True Positive Rate (TPR)
+ - False Positive Rate (FPR)-- Type 1 Error
+ - False Negative Rate (FPR)-- Type 2 Error
+ - Precision
+ - ROC curve & AUC value (will learn later)
+ 
+##### Accuracy
+```{r,eval=TRUE, echo=FALSE}
+knitr::include_graphics("~/GitHub/DSA1101 Slayers/Pictures/yum.jpg")
+```
+
+ - The *overall success rate*
+ - Basically correct / total x 100%
+ 
+##### True Positive Rate (TPR)
+```{r,eval=TRUE, echo=FALSE}
+knitr::include_graphics("~/GitHub/DSA1101 Slayers/Pictures/TPR.jpg")
+```
+
+
+##### False Positive Rate (FPR)-- Type 1 Error
+```{r,eval=TRUE, echo=FALSE}
+knitr::include_graphics("~/GitHub/DSA1101 Slayers/Pictures/FPR.jpg")
+```
+
+
+##### False Negative Rate (FNR)-- Type 2 Error
+```{r,eval=TRUE, echo=FALSE}
+knitr::include_graphics("~/GitHub/DSA1101 Slayers/Pictures/FNR.jpg")
+```
+
+
+##### Precision
+```{r,eval=TRUE, echo=FALSE}
+knitr::include_graphics("~/GitHub/DSA1101 Slayers/Pictures/Precision.jpg")
+```
+
+Odds ratio for 2 by 2 matrix:
+
+[a b]
+
+[c d]
+
+OR = ab/cd
+
+k is usually odd
+
+
+
+### Accuracy
+
+```{r,eval=TRUE, echo=FALSE}
+knn.pred = knn(train.x, test.x, train.y, k = 5)
+table(test.y, knn.pred)
+
+knn.pred = knn(train.x, test.x, train.y, k = 10)
+table(test.y, knn.pred)
+```
+<br>
+
+## TUTORIAL QUESTIONS
+
+1 Read the data from the file Colleges.txt. Consider a simple linear regression of percentage of applicants accepted (Acceptance) on the median combined math and verbal SAT score of students (SAT),
+called Model M1.
+
+
+1a) Consider data set Colleges.txt. **Write a function in R using the matrix approach to perform a
+simple linear regression of percentage of applicants accepted (Acceptance) on the median combined
+math and verbal SAT score of students (SAT).**
+
+```{r, eval=TRUE,echo=TRUE}
+library(tidyverse)
+library(dplyr)
+collegesdb <- read.csv("~/Github/DSA1101 Slayers/datasets/Colleges.txt", sep = "\t", header = TRUE)
+attach(collegesdb)
+#plan: get RSS first then derivative it?? then solve for intercept and gradient???
+#ok no thats impossible how would u even get RSS direct
+matrix <- function(x, y){
+  #rem x and y are matrixes
+  #aim: get beta hat (by minimising RSS, etc)
+  beta <- solve(t(x)%*%x)%*%t(x)%*%y
+  return(beta)
+  #solve() gets the inverse of the function
+  #%*% multiplies the matrixes, like multiplication sign for matrixes
+}
+
+matrix(x = cbind(1, SAT), y = Acceptance)
+#bcos x is a 2 by n matrix, and y is a 1 by n
+
+```
+Compare the results with the answers in part (b) of Question 1.
+
+
+
+
+
+**1b) If data set of n points has two input features, x1, x2, by matrix approach, the estimate of coefficient is still ̂ β = (XT X)−1XT y**
+
+i. Specify matrix y, X and β.
+ii. Use your function in part (a) to perform a multivariate linear regression of percentage of
+applicants accepted (Acceptance) on SAT and Top.10p - percentage of students in the top
+10% of their high school graduating class
+
+```{r, eval=TRUE,echo=TRUE}
+# Enter code here
+
+
+```
+<br>
+
+2. A dataset on house selling price was randomly collected 1, house_selling_prices_FL.csv. It’s our
+interest to model how y = selling price (dollar) is dependent on x = the size of the house (square feet).
+A simple linear regression model (y regress on x) was fitted, called Model 1.
+The given data has another variable, NW, which specifies if a house is in the part of the town considered less desirable (NW = 0).
+
+**2a) Derive the correlation between x and y.**
+
+
+```{r, eval=TRUE,echo=TRUE}
+#enter code here
+library(class)
+library(tidyverse)
+housey = read.csv("~/GitHub/DSA1101 Slayers/datasets/house_selling_prices_FL.csv")
+attach(housey)
+?lm
+M1 = lm(price ~ size)
+summary(M1)
+cor(price, size)
+NW = as.factor(NW) #declaring NW as categorical
+```
+
+
+**2b)Derive a scatter plot of y against x. Give your comments on the association of y and x. **
+
+
+```{r, eval=TRUE,echo=TRUE}
+# Enter code here
+
+```
+
+2c) Derive R2 of Model 1. Verify that √R2 = |cor(y,x)|. In which situation we can have √R2 = cor(y, x)
+
+```{r, eval=TRUE,echo=TRUE}
+# Enter code here
+#if cor(y, x) > 0, and M1 is simple y~ x
+#why: prove cor(y, yhat) = cor(y, x) 
+# prove cor^2(y, yhat) = var(yhat)/var(y)
+# claim var(yhat)/var(y) = R^2
+```
+
+2d) Form a model (called Model 2) which has two regressors (x and NW). Write down the equation
+of Model 2.
+
+```{r, eval=TRUE,echo=TRUE}
+# Enter code here
+
+```
+
+2e) Report the coefficient of variable NW in Model 2. Interpret it.
+
+```{r, eval=TRUE,echo=TRUE}
+# Enter code here
+
+```
+
+2f) Estimate the price of a house where its size is 4000 square feet and is located at the more desirable
+part of the town
+
+```{r, eval=TRUE,echo=TRUE}
+# Enter code here
+
+```
+
+2g) Report the R2 of Model 2. Interpret it
+
+```{r, eval=TRUE,echo=TRUE}
+# Enter code here
+
+```
