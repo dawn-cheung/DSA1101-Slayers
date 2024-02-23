@@ -50,11 +50,15 @@ Selecting the most informative attribute based on 2 basic measures:
 - Information gain: the reduction in purity should a split be made there
 
 ## Purity
-The probability of the corresponding class
+Its probability of the corresponding class
+- When only considering the particular response variable, ignoring all other attributes/features, then the probability of [the response variable being equal to something] is the purity
+  - eg it is 89.45% pure on the class where [the response variable is equal to something], and the rest, 10.55% pure on the class [variable equals to smth else]
 
-If we only look at that specific response variables. 
 
 ## Entropy
+```{r,eval=TRUE, echo=FALSE}
+knitr::include_graphics("~/GitHub/DSA1101 Slayers/Pictures/entropy formula.jpg")
+```
 
 
 ## Traversing down the tree, how are the subsequent decision variables at each node selected?
