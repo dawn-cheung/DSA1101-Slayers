@@ -115,7 +115,7 @@ knn.pred #returns the prediction for the response of the test points i.e. predic
 ##### So how did the model do?
 ```{r,eval=TRUE, echo=TRUE}
 data.frame(test.y, knn.pred) %>%
-  slice(1:35) #lol to shorten the doc
+  slice(1:25) #lol to shorten the doc
 
 table(test.y, knn.pred)
 
@@ -134,13 +134,14 @@ More notations:
    - False Positive: predict C, when actually C'
    - False Negative: predict C', when actually C
    
+
 ##### Confusion Matrix
 ```{r,eval=TRUE, echo=FALSE}
 knitr::include_graphics("~/GitHub/DSA1101 Slayers/Pictures/Confusion Matrix Pic.jpg")
 knitr::include_graphics("~/GitHub/DSA1101 Slayers/Pictures/CM spam emails.jpg")
 ```
 
-###### Criteria to Evaluate
+##### Criteria to Evaluate
 
  - Accuracy
  - True Positive Rate (TPR)
@@ -149,6 +150,7 @@ knitr::include_graphics("~/GitHub/DSA1101 Slayers/Pictures/CM spam emails.jpg")
  - Precision
  - ROC curve & AUC value (will learn later)
  
+
 ##### Accuracy
 ```{r,eval=TRUE, echo=FALSE}
 knitr::include_graphics("~/GitHub/DSA1101 Slayers/Pictures/yum.jpg")
@@ -156,11 +158,14 @@ knitr::include_graphics("~/GitHub/DSA1101 Slayers/Pictures/yum.jpg")
 
  - The *overall success rate*
  - Basically correct / total x 100%
- 
+
+
+
 ##### True Positive Rate (TPR)
 ```{r,eval=TRUE, echo=FALSE}
 knitr::include_graphics("~/GitHub/DSA1101 Slayers/Pictures/TPR.jpg")
 ```
+
 
 
 ##### False Positive Rate (FPR)-- Type 1 Error
@@ -169,10 +174,14 @@ knitr::include_graphics("~/GitHub/DSA1101 Slayers/Pictures/FPR.jpg")
 ```
 
 
+
+
 ##### False Negative Rate (FNR)-- Type 2 Error
 ```{r,eval=TRUE, echo=FALSE}
 knitr::include_graphics("~/GitHub/DSA1101 Slayers/Pictures/FNR.jpg")
 ```
+
+
 
 
 ##### Precision
@@ -186,15 +195,29 @@ Odds ratio for 2 by 2 matrix:
 
 [c d]
 
-OR = ab/cd
+OR = ad/bc
 
-k is usually odd
+```{r,eval=TRUE, echo=TRUE}
+slay <- function(x) {
+  if (any(x == 0)){
+    x = x + 0.5
+  }
+  return( (x[1,1]*x[2,2]) / (x[1,2]*x[2,1]) )
+}
+
+slay(cbind(c(1,2), c(3,4)))
+#remember that cbind stands for column bind
+#so all inputs will be put as new columns
+
+```
+
+k in knn is usually odd
 
 
 
 ### Accuracy
 
-```{r,eval=TRUE, echo=FALSE}
+```{r,eval=TRUE, echo=TRUE}
 knn.pred = knn(train.x, test.x, train.y, k = 5)
 table(test.y, knn.pred)
 
@@ -218,36 +241,60 @@ library(tidyverse)
 library(dplyr)
 collegesdb <- read.csv("~/Github/DSA1101 Slayers/datasets/Colleges.txt", sep = "\t", header = TRUE)
 attach(collegesdb)
-#plan: get RSS first then derivative it?? then solve for intercept and gradient???
-#ok no thats impossible how would u even get RSS direct
+
+
 matrix <- function(x, y){
   #rem x and y are matrixes
   #aim: get beta hat (by minimising RSS, etc)
   beta <- solve(t(x)%*%x)%*%t(x)%*%y
   return(beta)
   #solve() gets the inverse of the function
+  #t() is transpose which is Aᵀ the T thing
   #%*% multiplies the matrixes, like multiplication sign for matrixes
 }
-
 matrix(x = cbind(1, SAT), y = Acceptance)
 #bcos x is a 2 by n matrix, and y is a 1 by n
 
 ```
 Compare the results with the answers in part (b) of Question 1.
 
+```{r, eval=TRUE,echo=TRUE}
+#simple(SAT, Acceptance)
+#simple() is NOT A BUILT IN FUNCTION is from tut 3
+
+lm(Acceptance ~ SAT)
+
+```
 
 
 
 
-**1b) If data set of n points has two input features, x1, x2, by matrix approach, the estimate of coefficient is still ̂ β = (XT X)−1XT y**
+1b) If data set of n points has two input features, x1, x2, by matrix approach, the estimate of coefficient is still ̂ β = (XT X)−1XT y
 
-i. Specify matrix y, X and β.
-ii. Use your function in part (a) to perform a multivariate linear regression of percentage of
-applicants accepted (Acceptance) on SAT and Top.10p - percentage of students in the top
-10% of their high school graduating class
+i. Specify **matrix y, X and β.**
+ii. Use your function in part (a) to **perform a multivariate linear regression of percentage of
+applicants accepted (Acceptance) on SAT and Top.10p - percentage of students in the top 10% of their high school graduating class**
+
+
+for i,
+
+   y = response variable, Acceptance
+   
+   X = matrix of columns 1, SAT and Top.10p
+   
+   β = da unknowns 
+   
+```{r, eval=TRUE,echo=TRUE}
+# Define matrix X
+X = cbind(1, SAT, Top.10p)
+matrix(x = X, y = Acceptance)
+
+```
+
+Compare the results with using lm()
 
 ```{r, eval=TRUE,echo=TRUE}
-# Enter code here
+lm(Acceptance ~ SAT + Top.10p)
 
 
 ```
@@ -263,15 +310,17 @@ The given data has another variable, NW, which specifies if a house is in the pa
 
 ```{r, eval=TRUE,echo=TRUE}
 #enter code here
+library(dplyr)
 library(class)
 library(tidyverse)
 housey = read.csv("~/GitHub/DSA1101 Slayers/datasets/house_selling_prices_FL.csv")
 attach(housey)
-?lm
-M1 = lm(price ~ size)
-summary(M1)
+NW = as.factor(NW) #declaring NW as categorical, just to clean the data before starting
+
+
 cor(price, size)
-NW = as.factor(NW) #declaring NW as categorical
+cor(size, price)
+
 ```
 
 
@@ -280,45 +329,101 @@ NW = as.factor(NW) #declaring NW as categorical
 
 ```{r, eval=TRUE,echo=TRUE}
 # Enter code here
+M1 = lm(price ~ size)
 
+plot(size, price, pch = 20)
 ```
+ - Positive relationship
+
+ - Linear correlation: no curving of points
+
+ - The variability of response is quite stable: range of y does not increase as x increases
+
 
 2c) Derive R2 of Model 1. Verify that √R2 = |cor(y,x)|. In which situation we can have √R2 = cor(y, x)
 
 ```{r, eval=TRUE,echo=TRUE}
-# Enter code here
-#if cor(y, x) > 0, and M1 is simple y~ x
+M1 = lm(price ~ size)
+summary(M1) #R^2 is hidden somewhere here
+
+summary(M1)$r.squared #SPELL SQUARED CORRECTLY PLS 
+
+(cor(price, size))^2 # its cor to corr hor
+
+#they will be very similar when:
+#if cor(y, x) > 0, and M1 is simple y ~ x (simple model)
 #why: prove cor(y, yhat) = cor(y, x) 
 # prove cor^2(y, yhat) = var(yhat)/var(y)
 # claim var(yhat)/var(y) = R^2
+
+#where the explainatory is quantitative
 ```
 
 2d) Form a model (called Model 2) which has two regressors (x and NW). Write down the equation
 of Model 2.
 
-```{r, eval=TRUE,echo=TRUE}
+```{r 2d, eval=TRUE,echo=TRUE}
 # Enter code here
+NW = as.factor(NW) #declaring NW as categorical
 
+M2 = lm(price ~ size + NW)
+summary(M2)
+#notice that since NM is catagorical, it starts calling the variable NW1 to show that it is an indicator, and it is indicating that NW = 1 == True => I(NW = 1)is the indicator lol
+M2$coeff
+paste0("the equation is: price(hat) = ", M2$coeff[1], " + ", M2$coeff[2], "size + ",M2$coeff[3], "I(NW = 0)")
 ```
+
+
 
 2e) Report the coefficient of variable NW in Model 2. Interpret it.
 
-```{r, eval=TRUE,echo=TRUE}
+```{r 2e, eval=TRUE,echo=TRUE}
 # Enter code here
-
+M2$coeff[3]
 ```
+
+2 houses of the same location, then one with size increase by 1 unit will have average price larger by $77.98 [must be same location]
+
+for houses of the same size, the one not at the NW area (or NW = 1) will be more expensive by $3059 on average
+
+<br>
 
 2f) Estimate the price of a house where its size is 4000 square feet and is located at the more desirable
 part of the town
 
-```{r, eval=TRUE,echo=TRUE}
+```{r 2f, eval=TRUE,echo=TRUE}
 # Enter code here
+
+new_data = data.frame(size = 4000, NW = "1") #creates 2 columns
+#also NW = "1" must be in quotes cus its a factor vairable (not a number)
+
+predict(M2, newdata = new_data)
 
 ```
 
 2g) Report the R2 of Model 2. Interpret it
 
-```{r, eval=TRUE,echo=TRUE}
+```{r 2g, eval=TRUE,echo=TRUE}
 # Enter code here
-
+summary(M2)$r.squared
 ```
+Relatively low (quite far from 1) => low amount of variability inherent in the response before the regression is performed => M2 BETTER than model 1, which has a higher R^2 (so M1 has higher variability than M2) 
+
+<br>
+
+Extension question: is M2 significant?
+
+Significance => look at F statistic's p-value
+
+since p-value < 2.2e-14
+compared to a model with no regressors, just an intercept (straight line), M2 does significantly better
+
+
+
+<br>
+<br>
+
+
+
+
+

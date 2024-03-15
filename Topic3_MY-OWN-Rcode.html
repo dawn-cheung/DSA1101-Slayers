@@ -11,7 +11,7 @@
 
 <meta name="author" content="Dawn Cheung" />
 
-<meta name="date" content="2024-02-13" />
+<meta name="date" content="2024-03-04" />
 
 <title>DSA1101 Topic 3: Linear Regression</title>
 
@@ -352,7 +352,7 @@ display: none;
 
 <h1 class="title toc-ignore">DSA1101 Topic 3: Linear Regression</h1>
 <h4 class="author">Dawn Cheung</h4>
-<h4 class="date">2024-02-13</h4>
+<h4 class="date">2024-03-04</h4>
 
 </div>
 
@@ -517,7 +517,7 @@ Model M1.</p>
 Model M1.</strong></p>
 <pre class="r"><code>library(tidyverse)
 library(dplyr)
-collegesdb &lt;- read.csv(&quot;~/Github/DSA1101 Slayers/datasets/Colleges.txt&quot;, sep = &quot;\t&quot;, header = TRUE) #THIS THE &quot;\t&quot; PLS HOW 
+collegesdb &lt;- read.csv(&quot;~/Github/DSA1101 Slayers/datasets/Colleges.txt&quot;, sep = &quot;\t&quot;, header = TRUE) #THIS THE &quot;\t&quot; PLS HOW &quot; &quot;
 attach(collegesdb)
 #plan: get RSS first then derivative it?? then solve for intercept and gradient???
 #ok no thats impossible how would u even get RSS direct
@@ -538,14 +538,16 @@ ybar = (1/length(Acceptance))*sum(Acceptance)
 #B1 = (sum(SAT-xbar)*sum(Acceptance-ybar))/sum((SAT-xbar)^2)
 
 
-simple(SAT, Acceptance)</code></pre>
+simple(SAT, Acceptance) #instanciation: calling your function w/ parameters lol</code></pre>
 <pre><code>## [1] &quot;equation is: y hat = 202.267744013677 + -0.130089357268962x&quot;</code></pre>
 <p><br></p>
 <p><strong>1b) Use function lm() in R to derive the equation of Model
 M1. Compare with your answer in part (a).</strong></p>
 <pre class="r"><code># Enter code here
-M = lm(Acceptance ~ SAT)
-summary(M)</code></pre>
+M = lm(Acceptance ~ SAT) # OR u can do lm(Acceptance ~ SAT, collegesdb) where 2nd argument is database
+?lm</code></pre>
+<pre><code>## starting httpd help server ... done</code></pre>
+<pre class="r"><code>summary(M)</code></pre>
 <pre><code>## 
 ## Call:
 ## lm(formula = Acceptance ~ SAT)
@@ -564,10 +566,7 @@ summary(M)</code></pre>
 ## Residual standard error: 10.73 on 48 degrees of freedom
 ## Multiple R-squared:  0.3681, Adjusted R-squared:  0.355 
 ## F-statistic: 27.97 on 1 and 48 DF,  p-value: 2.999e-06</code></pre>
-<pre class="r"><code>#M$coefficients
-#summary(M)$coefficients
-#summary(M)$coefficients[1,1]
-paste0(&quot;equation is: y hat = &quot;, M$coefficients[2], &quot; + &quot;, summary(M)$coefficients[1,1], &quot;x&quot;) #yay both work fine</code></pre>
+<pre class="r"><code>paste0(&quot;equation is: y hat = &quot;, M$coefficients[2], &quot; + &quot;, summary(M)$coefficients[1,1], &quot;x&quot;) #yay both work fine</code></pre>
 <pre><code>## [1] &quot;equation is: y hat = -0.130089357268961 + 202.267744013676x&quot;</code></pre>
 <p><br></p>
 <ol start="2" style="list-style-type: decimal">
@@ -640,7 +639,7 @@ payment. The proportion of saving should be of 2 decimal places.</p>
 <p>Run function F3 and report the answers obtained for two cases:
 (salary = $7,000 and price = $1,200,000) and (salary = $4,000, price =
 $800,000).</p>
-<pre class="r"><code>F3 &lt;- function(salary, years_goal, price) {
+<pre class="r"><code>F3 &lt;- function(salary, years_goal, price) { #can give default values for these arguments too
   #price = 1200000 #cost of house
   down_payment = price*0.25
   saved = 10000
@@ -651,16 +650,20 @@ $800,000).</p>
   for (i in 1:(month_counter - 1)){
     dem_interest = dem_interest + (1.02^i)
   }
+  down_payment = down_payment/dem_interest
+  for (i in 1:(month_counter - 1)){
+    if (month_counter%%4 == 0) {
+      salary = salary * (1 + rate)
+    }
+  }
   final_p = ((down_payment/dem_interest)/salary)*100
   paste0(&quot;you will need to save &quot;,final_p,&quot;% of your salary&quot;)
 }
 
-F3(7000, 5, 1200000)</code></pre>
-<pre><code>## [1] 267189.7</code></pre>
-<pre><code>## [1] &quot;you will need to save 33.7633226518029% of your salary&quot;</code></pre>
-<pre class="r"><code>F3(4000, 5, 800000)</code></pre>
-<pre><code>## [1] 167189.7</code></pre>
-<pre><code>## [1] &quot;you will need to save 36.9720069661709% of your salary&quot;</code></pre>
+F3(7000, 5, 1200000)
+F3(4000, 5, 800000)
+
+#ALT METHOD: try ALL proportions ie seq(0.01, 1,by = 0.01) and really try every single percentage until we hit a portion that takes lesser than 5 years to achieve, OR when percentage = 100 in which even if all your salary goes to the house and u STILL cant afford in 5yrs</code></pre>
 </div>
 
 

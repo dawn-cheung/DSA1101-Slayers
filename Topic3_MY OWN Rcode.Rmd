@@ -256,7 +256,7 @@ be of 2 decimal places.
 Run function F3 and report the answers obtained for two cases: (salary = $7,000 and price =
 $1,200,000) and (salary = $4,000, price = $800,000).
 
-```{r, eval=TRUE,echo=TRUE}
+```{r, eval=FALSE,echo=TRUE}
 
 F3 <- function(salary, years_goal, price) { #can give default values for these arguments too
   #price = 1200000 #cost of house

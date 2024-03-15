@@ -63,7 +63,7 @@ cor(total, order)
 #closer ther absolute value of r to 1-> stronger association between X and Y
 
 #From lecture
-a = round(variable, didgits = 2)
+#a = round(variable, didgits = 2)
 #others used: total, length, summary, be clear on hist parameters
 
 # HISTOGRAM WITH NORMAL DENSITY 
@@ -109,7 +109,7 @@ boxplot(fev_var) #is fine too lol its just "less fancy"
 outtie  = boxplot(fev_var, xlab = "FEV", col = "blue")$out
 outtie
 
-indexes = which(fev_var %in% c(out))
+indexes = which(fev_var %in% c(outtie))
 fev_var[c(indexes)]
 
 # There are some outliers, but marjority of datapoints are below 4.7

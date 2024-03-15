@@ -1,0 +1,172 @@
+---
+title: "DSA1101 Tutorial 6 Working File"
+author: "Dawn Cheung"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Q1: KNN and N-fold Cross Validation
+
+Loan managers often need to take into account an applicant's demographic and socio-economic profiles in deciding whether to approve a loan to the applicant, to minimize losses due to defaults. In this exercise we will build and evaluate a classifier based on the German Credit Data to predict whether an applicant is considered as having good or bad credit risk. The features or predictors include (1) loan duration (in months), (2) credit amount, (3) Installment rate in percentage of disposable income and (4) age in years
+
+(a) Read and explore the data from the file German_credit.csv.
+
+```{r 1a}
+library(tidyverse)
+library(dplyr)
+library(class)
+library(rpart)
+library(rpart.plot)
+data = read.csv("~/Github/DSA1101 Slayers/datasets/German_credit.csv") #Q1
+attach(data)
+glimpse(data)
+```
+
+(b) Standardize the input features.
+```{r 1b}
+stand.X = scale(data[,2:5])
+#jbfhdkjsvlkdjh
+#end me
+
+#alt method:
+#credit[,2:5] = lapply(credit[,2:5], scale)
+#lapply applies the function to the input???
+#apply scale function to credit[,2:5]
+#mostly for convienience when applying 1 function to multiple columns
+#apply() can allow u to configure more (like combine diff cols?) but eh lapply does the job
+
+```
+
+(c) Randomly select 800 customer records to form the training data, and the remaining 200 records will be the test data.
+```{r 1c}
+setA = sample(1:1000, size = 800)
+q = 1:1000
+q = q[which(q != setA)]
+setB = sample(q, size = 200)
+
+#SIMPLER WAY TO GET SETB
+#test.data = credit[-setA,]
+
+set.seed(897)
+
+train.X = stand.X[setA, ]
+test.X = stand.X[setB, ]
+train.Y = data[setA, 1]
+test.Y = data[setB, 1]
+```
+
+(d) Use 1-nearest neighbor classifier for the training data to predict if a loan applicant is credible for the 200 test points. Compute the accuracy of the classifier.
+```{r 1d}
+knn.pred = knn(train.X, test.X, train.Y, k = 1)
+knn.pred
+
+killme = table(knn.pred, test.Y)
+acc = (killme[1,1] + killme[2,2]) / 200
+acc
+```
+
+(e) Use N-folds cross validation with N = 5 to find the average accuracy for the 1-nearest neighbor classifier.
+```{r 1e}
+setA = sample(1:1000, size = 200)
+q = 1:1000
+#i know this can be automated but im too tired for this
+q = q[which(q != setA)]
+setB = sample(q, size = 200)
+q = q[which(q != setB)]
+setC = sample(q, size = 200)
+q = q[which(q != setC)]
+setD = sample(q, size = 200)
+q = q[which(q != setC)]
+setE = sample(q, size = 200)
+
+COMBINE = data.frame(setA, setB, setC, setD, setE)
+
+#SIMPLER WAY:
+#n_folds=5 # each fold has 200 data points
+#folds_j <- sample(rep(1:n_folds, length.out = dim(credit)[1] )) 
+#rep stands for replication
+#so rep(1:n_folds, length.out = dim(credit)[1] ) returns 1 2 3 4 5 1 2 3 4 5 1 2 3...
+
+to_compare = c()
+
+please <- function(HELPME = 1) {
+  aveacc_count = c()
+  for (i in 1:5) {
+    train.X = stand.X[-unlist(COMBINE[,i]), ]
+    test.X = stand.X[unlist(COMBINE[,i]), ]
+    train.Y = data[-unlist(COMBINE[,i]), 1]
+    test.Y = data[unlist(COMBINE[,i]), 1]
+
+    knn.pred = knn(train.X, test.X, train.Y, k = HELPME)
+    knn.pred
+
+    killme = table(knn.pred, test.Y)
+    acc = (killme[1,1] + killme[2,2]) / 200
+    aveacc_count = c(aveacc_count, acc)
+  }
+  to_compare = c(to_compare, mean(aveacc_count))
+  return(mean(aveacc_count))
+  #i want to mf kms
+}
+
+please()
+
+
+```
+
+(f) Repeat question 1e for K-nearest neighbor classifiers where K = 1, 2, ...100.
+```{r 1f}
+for (i in 1:100) {
+  please(i)
+  to_compare = c(to_compare, please(i))
+}
+#nvm goodnight
+```
+
+(g) Compare the 100 classifiers above, which few values of K give the best average accuracy?
+```{r 1g}
+to_compare
+sort(to_compare, TRUE)[1]
+
+plot(x = 1:100, to_compare)
+```
+
+
+
+## Q2: Decision Trees
+
+Consider the famous Iris Flower Data set which was first introduced in 1936 by the famous stastistician Ronald Fisher. This data set consists of 50 observations from each of three species of Iris (Iris setosa, Iris virginica and Iris versicolor).
+Four features were measured from each observation: the length and the width of the sepals and petals (in cm).
+
+(a) Use decision tree method to predict Iris species based on all four features.
+```{r 2a}
+iris = read.csv("~/Github/DSA1101 Slayers/datasets/iris.csv")
+head(iris)
+attach(iris)
+fit <- rpart(class ~ sepal.length + sepal.width + petal.length + petal.width,
+             method = "class", #tells R to return the category of response (yes or no)
+             data = iris,
+             control = rpart.control(minsplit = 1), #tells R how to split the node; minsplit = 1 means a branch is created when there is at least 1 observation in that branch => tells R how big we want the tree to be
+             parms = list(split = "information")) # what criteria to use to choose the root node & internal nodes; either info gained or gini index; default val is gini
+```
+
+(b) Visualize the decision tree above, using the rpart.plot function.
+```{r 2b}
+rpart.plot(fit, type = 4, extra = 2, clip.right.labs = FALSE)
+```
+
+(c) What are the more important features in the fitted tree above?
+
+petal length and petal width
+```{r 2c}
+#use predict() function to do prediction lol
+predict(fit, newdata = data.frame(sepal.length = 5.1, sepal.width = 3.3, petal.length = 3, petal.width = 1.8), type = "class")
+#if you want the most likely type of flower, type = "class" is important here bc type = "prob" will give u a vector of probability
+```
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
