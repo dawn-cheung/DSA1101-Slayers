@@ -1,7 +1,7 @@
 
 #############  EXAMPLE 1: CLASSIFYING FRUITS
 
-fruit.dat= read.csv("C:/Data/fruit.csv")
+fruit.dat= read.csv("~/Github/DSA1101 Slayers/datasets/fruit.csv")
 #Long: 1 = Yes, 0 = No
 #Sweet: 1 = Yes, 0 = No
 #Yellow: 1 = Yes, 0 = No
@@ -34,16 +34,17 @@ results
 ######## EXAMPLE 2: EMPLOYEE & ONSITE EDUCALTIONAL PROGRAM
 
 
-sample <- read.table("C:/Data/sample1.csv",header=TRUE,sep=",")
+sample <- read.table("~/Github/DSA1101 Slayers/datasets/sample1.csv",header=TRUE,sep=",")
 head(sample)
 dim(sample)
 sample
+attach(sample)
 # Enrolls = RESPONSE with 2 categories
 
 ######### PART 1: MANUAL FORMING NAIVE BAYES CLASSIFIER ######
 
 traindata <- as.data.frame(sample[1:14,])
-testdata <- as.data.frame(sample[15,])
+testdata <- as.data.frame(sample[15,]) #note that this is only the last row/obs, with an empty enroll
 testdata
 
 # get the probability of each categories of the response
@@ -98,6 +99,8 @@ library(e1071)
 
 model <- naiveBayes(Enrolls ~ Age+Income+JobSatisfaction+Desire, traindata)#, laplace=0)
 
+#model <- naiveBayes(response_var ~ predictor1 + predictor2, traindata)
+
 results <- predict(model,testdata,"raw"); results
 
 results[2]/results[1] # 4.115226
@@ -109,7 +112,7 @@ results <- predict(model,testdata,"class"); results
 ############### BANK-SAMPLE DATA ==> ROC and AUC
 
 
-banktrain <- read.csv("C:/Data/bank-sample.csv", header=TRUE)
+banktrain <- read.csv("~/Github/DSA1101 Slayers/datasets/bank-sample.csv", header=TRUE)
 dim(banktrain)
 head(banktrain)
 
@@ -118,7 +121,7 @@ drops <- c("balance", "day", "campaign", "pdays", "previous", "month")
 banktrain <- banktrain [,!(names(banktrain) %in% drops )]
 
 # TESTING DATA SET
-banktest <- read.csv("C:/Data/bank-sample-test.csv")
+banktest <- read.csv("~/Github/DSA1101 Slayers/datasets/bank-sample-test.csv")
 banktest <- banktest[,!( names ( banktest ) %in% drops )]
 
 library(e1071)
@@ -131,7 +134,7 @@ nb_model <- naiveBayes( subscribed ~., data = banktrain)
 head(banktest);
 ncol(banktest) # number of columns = 11. Respone = 11th column.
 
-nb_prediction <- predict(nb_model, newdata = banktest[,-ncol(banktest)], type ='raw')
+nb_prediction <- predict(nb_model, newdata = banktest[,-ncol(banktest)], type ='raw') #remove the last column bc thats the response variable: u cant use the response variable to determine the response variable lol
 # this is the predicted response for the test set
 nb_prediction
 
@@ -147,10 +150,11 @@ library(ROCR)
 score <- nb_prediction[, c("yes")] 
 # score is the conditional prob from Naive Bayes classifier for each test point
 
-actual_class <- banktest$subscribed == 'yes' # actual response is 0 or 1
+actual_class <- banktest$subscribed == 'yes' # actual response is 0 or 1 SO TO TRANSFORM the yes and no into 1 and 0, so prediction() can understand
 
 pred <- prediction(score , actual_class) 
 # this is to "format" the input so that we can use the function in ROCR to get TPR and FPR
+#NOT ACTUALLY FOR PREDICTING
 
 perf <- performance(pred , "tpr", "fpr")
 
@@ -164,7 +168,7 @@ auc <- performance(pred , "auc")@y.values[[1]]
 auc
 # auc is used to compare between Naive Bayes methd with other 
 # methods such as linear model, logistic model, DT, etc. 
-# the one with larger auc value is better.
+# the one with larger auc value is better. (closer to 1)
 
 
 # VISUALIZE ON HOW THE THRESHOLD CHANGES WILL CHANGE TPR AND FPR:

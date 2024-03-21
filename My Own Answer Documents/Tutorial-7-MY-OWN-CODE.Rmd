@@ -1,0 +1,157 @@
+---
+title: "Tutorial-7-MY-OWN-CODE"
+author: "Dawn Cheung"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Decision Trees
+
+Customer churn is the loss of clients or customers. Banks, telephone service, companies, Internet service providers, pay TV companies and insurance firms often use customer churn analysis and customer churn rates as one of their key business metrics. This is because the cost of retaining an existing customer is far less than acquiring a new one. Companies from these sectors often have customer service branches which attempt to win back defecting clients, because recovered long-term customers can be worth much more to a company than newly recruited clients.
+In this problem , a wireless telecommunications company wants to predict whether a customer will churn (switch to a different company) in the next six months. With a reasonably accurate prediction of a person's churning, the sales and marketing groups can attempt to retain the customer by ordering various incentives. Variables of our concern are listed below
+
+
+(i) Age (years)
+
+(ii) Married (true/false) [CATAGORICAL]
+
+(iii) Duration as a customer (years)
+
+(iv) Churned contacts -Number of the customer's contacts that have churned (count)
+
+(v) Churned (true/false) -Whether the customer churned
+
+
+
+(a) Build a decision tree for predicting customer churn, using the feature variables Age, Married, Cust_years and Churned_contacts.
+```{r 1a, echo=TRUE}
+library(tidyverse)
+library(rpart)
+library(rpart.plot)
+
+data = read.csv("~/Github/DSA1101 Slayers/datasets/churn.csv")
+
+data$Churned = as.factor(data$Churned)
+data$Married = as.factor(data$Married)
+glimpse(data)
+#maybe good habit to remove the ID column
+
+attach(data)
+
+fit <- rpart(Churned ~ Age + Married + Cust_years + Churned_contacts,
+             method = "class",
+             data = data,
+             control = rpart.control(minsplit = 1),
+             parms = list(split = "information"))
+
+rpart.plot(fit, type = 4, extra = 2, clip.right.labs = FALSE)
+
+```
+
+
+(b) Consider the decision tree in part (a) to predict binary variable Churned. Use the tree to predict customer churn for the following observations.
+```{r 1b, echo=TRUE}
+WHY = data.frame(Age = c(26, 23,56,36,45,28,22,22,60,32),
+           Married = as.factor(c(1,1,1,1,0,0,1,0,1,0)),
+           Cust_years = c(2,3,5,5,2,2,3,3,2,3),
+           Churned_contacts = c(2,3,2,2,1,2,0,2,1,1))
+           
+predict(fit, newdata = WHY, type = "class")
+```
+
+2. (DT and N-fold Cross Validation) Consider the famous Iris Flower Data set which was first introduced in 1936 by the famous statistician Ronald Fisher. This data set consists of 50 observations from each of three species of Iris (Iris setosa, Iris virginica and Iris versicolor).
+Four features were measured from each observation: the length and the width of the sepals and petals (in cm).
+In Tutorial 6, we used decision tree method to predict Iris species based on all four features. We now would want to use N-fold CV to check on how good the method is, based on the accuracy. We'll use 5-fold CV where we would want to keep the ratio of the three species the same (1:1:1) in both training set and test set.
+
+
+What's the average accuracy of the decision tree method?
+```{r 2, echo=TRUE}
+library(tidyverse)
+library(rpart)
+library(rpart.plot)
+iris = read.csv("~/Github/DSA1101 Slayers/datasets/iris.csv")
+
+glimpse(iris)
+iris$class = as.factor(iris$class)
+attach(iris) #is class supp to be a factor(??)
+
+fit <- rpart(class ~ sepal.length + sepal.width + petal.length + petal.width,
+             method = "class",
+             data = iris,
+             control = rpart.control(minsplit = 1),
+             parms = list(split = "information"))
+
+
+setosa = sample(iris[which(class == "Iris-setosa"),])
+virginica = sample(iris[which(class == "Iris-virginica"),])
+versicolor = sample(iris[which(class == "Iris-versicolor"),])
+
+helpp = c()
+place = c()
+
+for (q in 1:5) {
+  for (i in 1:10) {
+    w = ((q-1) * 10) + i
+    place = rbind(place, setosa[w,], virginica[w,], versicolor[w,])
+  }
+  helpp = c(place, helpp)
+}
+
+#OK TOO COMPLICATED LMAO
+#better idea: split setosa, virginica and vericolor
+# then split each of those 3 grps into 5 groups, randomly
+# then add 1 fold from each of the seperated sub-groups
+
+folds_j1 = 
+
+```
+
+3.  Recall that we studied N-fold cross-validation for the K-nearest neighbor classifier, in which the value of k is varied to control the complexity of the decision surface for the classifier. For decision tree classification, when fitting a tree using function rpart(), we use the argument
+control = rpart.control( minsplit =1) where minsplit = 1 is to specify the minimum number of observations that must exist in a node in
+order for a split to be attempted. By default, minsplit = 20. This minsplit argument helps to draft the complexity of a tree, complex with many layers and branches or simple with few layers and less branches.
+
+For this control = rpart.control(), there is a similar complexity parameter exists, which is denoted as cp where by default cp = 0.01: control = rpart.control(cp = 0.01).
+
+Heuristically, smaller values of cp correspond to decision trees of larger sizes, and hence more complex decision surfaces.
+For this problem, we will investigate n-fold cross validation for a decision tree classfier.
+
+Consider the data set `bank-sample.csv' we discussed in the lectures. For this exercise, we will fit a decision tree with subscribed as outcome and job, marital, education, default, housing, loan, contact and poutcome as feature variables. We want to find the best cp value in terms of mis-classification error rate
+
+
+(a) Randomly split the entire data set into 10 mutually exclusive data sets.
+```{r 3a, echo=TRUE}
+bakntrain = banktrain[,!names(banktrain) %in% drops]
+# returns a list of boonleans
+```
+
+
+(b) Let cp take on the values 10k for k = −5, −4, ..., 0, ..., 3, 4, 5.
+```{r 3b, echo=TRUE}
+#helloes
+cp = 
+```
+
+
+(c) At each cp value, run the following loop for j = 1, 2, ..., 10:
+i. Set the jth group to be the test set.
+ii. Fit a decision tree on the other 9 sets with the value of cp.
+iii. Predict the class assignment of subscribed for each observation of the test set.
+iv. Calculate the number of mis-classification(s) by comparing predicted versus actual class labels
+in the test set.
+```{r 3c, echo=TRUE}
+#helloes
+```
+
+
+(d) Determine the best cp value in terms of mis-classification error rate
+```{r 3d, echo=TRUE}
+#helloes
+#i did not get a word this man said
+#help
+```
+
+
