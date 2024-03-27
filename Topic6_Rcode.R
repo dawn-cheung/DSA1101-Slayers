@@ -132,7 +132,7 @@ nb_model <- naiveBayes( subscribed ~., data = banktrain)
 # perform on the test set BUT we need to remove the respponse column first
 
 head(banktest);
-ncol(banktest) # number of columns = 11. Respone = 11th column.
+ncol(banktest) # number of columns = 11. Response = 11th column.
 
 nb_prediction <- predict(nb_model, newdata = banktest[,-ncol(banktest)], type ='raw') #remove the last column bc thats the response variable: u cant use the response variable to determine the response variable lol
 # this is the predicted response for the test set
