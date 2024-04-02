@@ -1,0 +1,263 @@
+---
+title: "Tutorial 8 & 9 MY OWN Code"
+author: "Dawn Cheung"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Naive Bayes
+
+Data set Titanic.csv provides information on the fate of passengers on the fatal maiden voyage of the ocean liner Titanic,. It includes the variables: economic status (class), sex, age and survival. We will train a naive Bayes classifier using this data set, and predict survival
+
+
+(a) Compute the probabilities P(Y = 1) (survived) and P(Y = 0) (did not survive).
+```{r 1a, echo = TRUE}
+library(tidyverse)
+
+data = read.csv("~/Github/DSA1101 Slayers/datasets/Titanic.csv")
+glimpse(data)
+
+#data$Survived = as.factor(data$Survived)
+#data$Sex = as.factor(data$Sex)
+#data$Class = as.factor(data$Class)
+
+attach(data)
+
+
+prop.table(table(Survived))
+
+ProbY1 = prop.table(table(Survived))[[1]] #double bracket to remove the column name
+ProbY0 = prop.table(table(Survived))[[2]]
+
+ProbY1
+ProbY0
+
+#> tprior <- table(Survived) # Number of ppl survived & not survived
+#> tprior
+#Survived
+#  No  Yes 
+#1490  711 
+#> tprior <- tprior/sum(tprior) # the probability scores
+#> tprior
+#Survived
+#      No      Yes 
+#0.676965 0.323035 
+
+```
+
+
+(b) Compute the conditional probabilities P(Xi = xi |Y = 1) and P(Xi = xi |Y = 0), where i = 1, 2, 3, 4 for the feature variables X = {class, sex, age}.
+```{r 1b, echo = TRUE}
+#P(Xi = xi |Y = 1) = P(class = 3rd)
+c = table(Survived, Class); c
+s = table(Survived, Sex); s
+a = table(Survived, Age); a
+
+
+c = c/rowSums(c); c #remember that u shld divide by the total number of yes/no OF THE WHOLE DATASET
+s = c/rowSums(s); s
+a = c/rowSums(a); a
+
+
+#to add all rows: rowSums()
+
+#        Class
+#Survived        1st        2nd        3rd       Crew
+#     No  0.08187919 0.11208054 0.35436242 0.45167785
+#     Yes 0.28551336 0.16596343 0.25035162 0.29817159
+
+#NOTE: completely wrong to use prop.table. we need to get the total divisible to be the entire dataset(?)
+
+```
+
+(c) Predict survival for an adult female passenger in 2nd class cabin
+```{r 1c, echo = TRUE}
+#P(Y = survive |Age = Adult, Sex = Female, Class = 2nd)
+Yum = ProbY1 * c[[2,2]] * s[[1,2]] * s[[1,2]]
+
+NotYum = ProbY0 * c[[2,1]] * s[[1,1]] * s[[1,1]]
+
+if (Yum > NotYum) {
+  print("more likely to survive")
+} else {
+  print("death is inevitable")
+}
+```
+
+(d) Compare your prediction in (c) with the one performed by the naiveBayes() function in package `e1071'.
+```{r 1d, echo = TRUE}
+library("e1071")
+
+M1 <- naiveBayes(Survived ~ Age + Sex + Class, data)#, laplace=0)
+
+newdata = cbind(Age = "Adult", Sex = "Female", Class = "2nd") #maybe use data.frame() instead
+
+predict(M1, newdata = newdata, type = "class")
+predict(M1, newdata = newdata, type = "raw")
+#prediction is the sameeeee
+```
+
+
+
+## Naive Bayes + Deision Trees, ROC, AUC
+
+Consider the data set Titanic.csv again.
+
+(a) Fit a decision tree of on all the three feature variables, called M2, which uses minsplit = 1 and information gain.
+```{r 2a, echo = TRUE}
+library(rpart)
+library(rpart.plot)
+
+
+M2 <- rpart(Survived ~ Age + Sex + Class,
+             method = "class",
+             data = data,
+             control = rpart.control(minsplit = 1),
+             parms = list(split = "information"))
+summary(M2)
+
+```
+
+(b) Plot the tree M2.
+```{r 2b, echo = TRUE}
+rpart.plot(M2, type = 4, extra = 2, clip.right.labs = FALSE)
+```
+
+(c) Plot the ROC curves and derive the AUC values for the two classifiers (naive Bayes from question 1 and decision tree). Which classifier has larger AUC value?
+```{r 2c, eval = FALSE, echo = TRUE}
+library(dplyr)
+library(ROCR)
+
+ncol(data)
+
+
+sur = ifelse(Survived == "Yes", 1,0)
+
+sur = as.factor()
+
+data
+
+# > typeof(data.frame(data[,-ncol(data)]))
+# [1] "list"
+#HUHHHH
+
+#do NB first
+nb_prediction = predict(M1,
+    newdata = data.frame(data[,-ncol(data)]),
+    type = "raw")
+
+dt_prediction = predict(M2, newdata = data.frame(data[,-ncol(data)]), type = "raw")
+
+nb_predicted_score = nb_prediction[,c("Yes")]
+dt_predicted_score = dt_prediction[,c("Yes")]
+
+actual_class = data$Survived == "Yes"
+
+nb_pred = prediction(nb_predicted_score, actual_class)
+dt_pred = prediction(dt_predicted_score, actual_class)
+
+nb_perf <- performance(nb_pred , "tpr", "fpr")
+dt_perf <- performance(dt_pred , "tpr", "fpr")
+
+auc1 <- performance(pre_nb, "auc")@y.values[[1]]
+
+```
+
+
+## Logistic Regression (Tutorial 9)
+
+Consider the data set Titanic.csv again.
+NOTE: I have changed M2 in tut 9 to M3 to prevent confusion with decision tree model in tut 8
+
+1) Perform logistic regression using all the feature variables to predict the survival status, called model M3.
+```{r 3.1, echo = TRUE}
+#REMEMBER MUST CONVERT TO 0 and 1
+sur = (Survived == "Yes")
+sur = as.factor(sur)
+data$sur = sur #so sur is a completely new column to mutate onto the database
+attach(data)
+glimpse(data)
+
+#note that glm is an in-built function-- no library needed
+M3 <- glm(sur ~ Age + Sex + Class,
+          data = data,
+          family = binomial(link = "logit")) #family decides the transformation g from g(y)
+
+summary(M3)
+
+```
+
+
+2) Write down the fitted equation of model M3.
+```{r 3.2, echo = TRUE}
+paste0("log[phat/(1-phat)] = ", M3$coeff[1]," + ", M3$coeff[2], "*I(Age = Child) + ", M3$coeff[3], "*I(Sex = Male) + ", M3$coeff[4], "*I(Class = 2nd) + ", M3$coeff[5], "*I(Class = 3rd) + ", M3$coeff[6], "*I(Class = Crew)")
+#remember the * to show multiplication lol
+```
+
+
+3) Interpret the coefficient of the variable `Sex' in M3.
+
+
+Note that female is reference. Male is indicated by indicator.
+
+
+When other variables are the same, compared to females, the log odds of surviving for a male is less than females by 2.42.
+
+
+The odds of surviving for a male is e^-2.42 times (which is 11.25 less times) the odds of surviving for a females.
+
+<br>
+
+4) Interpret the coefficient of the variable `Age' in M3.
+
+
+When other variables are the same, compared to an Adult, the log odds of surviving for a child is more than adults by 1.0615.
+
+
+The odds of surviving for a child is e^1.0615 times (which is 2.89 more times) the odds of surviving for a adult.
+
+
+5) Observe and compare the ROC curves and AUC for the two classifiers: naive Bayes (from Tutorial 8) and logistic regression.
+```{r 3.5, echo = TRUE}
+library(ROCR)
+
+#ROC for Log Reg
+pred = predict(M3, type = "response")
+preObj = prediction(pred, data$Survived) #notice here we don't need to use sur, the OG column is fine
+rocObj = performance(preObj, measure = "tpr", x.measure = "fpr")
+plot(rocObj)
+
+#getting AUC value for Log Reg
+aucLR = performance(preObj, measure = "auc")
+aucLR@y.values[[1]] #0.7597259
+
+
+#ROC for NB
+#Naive Bayes requires more formatting!!!
+naiveB = predict(M1, data[1:3], type = "raw") #for NB u need to specify what response variables (from the database) are needed
+
+
+score = naiveB[, 2] 
+#OK SO naiveB[,c("Yes")] and naiveB[,2] IS THE SAME bc u see what predict() returns
+#                No       Yes
+#   [1,] 0.69605930 0.3039407
+#   [2,] 0.69605930 0.3039407
+#   [3,] 0.69605930 0.3039407
+#yea so basically u want that Yes column
+#these are the predicted Yes'es by the way
+
+preObjNB = prediction(score, data$sur)
+rocObjNB = performance(preObjNB, measure = "tpr", x.measure = "fpr")
+plot(rocObjNB, add = TRUE, col = "red") #so to add on to our prev graph
+
+#getting AUC value for NB
+aucNB = performance(preObjNB, measure = "auc")
+aucNB@y.values[[1]]
+
+legend("bottomright", c("Logistic Regression", "Naive Bayes"), col = c("black", "red"), lty = 1)
+
+```
