@@ -53,7 +53,7 @@ plot(1:K, wss, col = "red", type="b", xlab="Number of Clusters",  ylab="Within S
 ################## GRADE GROUPING
 
 set.seed(1)
-grade = read.csv("C:/Data/grades_km_input.csv")
+grade = read.csv("~/Github/DSA1101 Slayers/datasets/grades_km_input.csv")
 head(grade)
 
 attach(grade)
