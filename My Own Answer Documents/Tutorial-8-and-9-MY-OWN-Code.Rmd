@@ -261,3 +261,7 @@ aucNB@y.values[[1]]
 legend("bottomright", c("Logistic Regression", "Naive Bayes"), col = c("black", "red"), lty = 1)
 
 ```
+
+TUTORIAL 10 NOTES:
+
+

@@ -51,6 +51,11 @@ barplot(dihyp,
         col = c("darkred", "blue"))
 #Among those with hypertension, 27.9% of them have diabetes.
 #Among those without hypertension, 6.93% of them have diabetes.
+#odds ratio
+wohyp = dihyp[2,1] / dihyp[1,1] #odds of success without hypertension 
+whyp = dihyp[2,2] / dihyp[1,2] #odds of success with hypertension
+OR = whyp / wohyp; OR
+#The odds of having diabetes while having hypertension is 5.20 times the odds of having diabetes without having hypertension. 
 
 
 #CATAGORICAL: Heart disease
@@ -62,7 +67,10 @@ barplot(dihea,
         col = c("darkred", "blue"))
 #Among those with heart disease, 32.1% of them have diabetes.
 #Among those without heart disease, 7.53% of them have diabetes.
-
+wohea = dihea[2,1] / dihea[1,1] #odds of success without heart disease
+whea = dihea[2,2] / dihea[1,2] #odds of success with heart disease
+OR = whea / wohea; OR
+#The odds of having diabetes while having heart disease is 5.82 times the odds of having diabetes without having heart disease. 
 
 #CATAGORICAL: Smoking history
 dihist = table(diabetes, smoking_history); dihist
@@ -73,10 +81,58 @@ barplot(dihist,
         col = c("darkred", "blue"))
 
 
+#median(bmi)
+#IQR(female)
+#summary(bmi ~ diabetes)
+#var(female)
+
 #CONTINUOUS: BMI
 hist(bmi)
 boxplot(bmi ~ diabetes, xlab = "diabetes", col = "blue")
 
+#CONTINUOUS: HbA1c_level
+hist(HbA1c_level)
+boxplot(HbA1c_level ~ diabetes, xlab = "diabetes", col = "blue")
+
+#CONTINUOUS: blood_glucose_level
+hist(blood_glucose_level)
+boxplot(blood_glucose_level ~ diabetes, xlab = "diabetes", col = "blue")
+
+#CONTINUOUS: age
+hist(age)
+aggie = boxplot(age ~ diabetes, xlab = "diabetes", col = "blue"); aggie
+outtie  = aggie$out; outtie
+length(outtie) #number of outiers: 118
+
+#M1 = lm(diabetes ~ age + hypertension + heart_disease + bmi + HbA1c_level + blood_glucose_level,
+#   data = data)
+#summary(M1)
+#LM not that appropriate bc response is a number
+#maybe ask in the anonymous Q&A thing?
+
+#DECSION TREE
+fit <- rpart(diabetes ~ age + hypertension + heart_disease + bmi + HbA1c_level + blood_glucose_level,
+             method = "class",
+             data = data,
+             control = rpart.control(cp = 0.001),
+             parms = list(split = "information"))
+
+rpart.plot(fit , type =4, extra =2, clip.right.labs =FALSE , varlen =0, faclen =0)
+
+prediction = predict(fit, new.data = data[,1:8], type = "class")
+
+confusion.matrix = table(prediction, data[,9])
+confusion.matrix
+
+accuracy = sum(diag(confusion.matrix))/sum(confusion.matrix)
+accuracy
+
+#ROC / AUC for decision tree
+
+#NAVIVE BAYES
+nbmodel = naiveBayes(diabetes ~ ., data)
+
+results <- predict(model,testdata,"raw"); results
 
 
 
