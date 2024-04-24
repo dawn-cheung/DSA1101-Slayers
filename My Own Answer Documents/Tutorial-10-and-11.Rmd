@@ -1,0 +1,222 @@
+---
+title: "Tutorial 10 & 11, Lecture 11"
+author: "Dawn Cheung"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Tutorial 10 (Topic 8): k-means
+
+the k-means algorithm finds out the distance among each element in your data, then find the number of centroids, allocate the element to the nearest centroids to form clusters, and the ultimate goal is to keep the size of each cluster as small as possible.
+
+- note k is number of clusters / "groups"
+- WSS: The sum distance within the centroids
+  - small WSS => better model
+- STANDARDISE THE INPUTS FOR K-means
+
+```{r wss, echo = TRUE, eval = FALSE}
+K = 15 
+wss <- numeric(K)
+
+for (k in 1:K) { 
+   wss[k] <- sum(kmeans(scale(data[,c("floor_area_sqm","resale_price")]), centers=k)$withinss)
+}
+
+
+plot(1:K, wss, col = "blue", type="b", xlab="Number of Clusters",  ylab="Within Sum of Squares")
+```
+
+Suppose we have data for five objects on two features:
+
+
+object  x1  x2
+
+     A  1   1
+     B  1.5 2
+     C  3   4
+     D  3.5 5
+     E  4.5 5
+     
+We set k = 2 to cluster the five data points into two clusters, P and Q, and initialize the algorithm with the centroids (x1,P , x2,P ) = (2, 2) and (x1,Q, x2,Q) = (4, 4).
+
+
+(a) Identify the objects in each cluster during the first iteration of the k-means algorithm
+```{r 10:1a, echo=TRUE}
+##not possible to do via kmeans() => use plot() mnaually
+
+x1 = c(1, 1.5, 3, 3.5, 4.5)
+x2 = c(1, 2, 4, 5, 5)
+
+objs = cbind(x1, x2)
+plot(objs)
+
+text(1.1, 1.1, "A")
+text(1.6, 2.2, "B")
+text(3.1, 4.1, "C")
+text(3.63, 5, "D")
+text(4.35, 5, "E")
+
+text(2,2,"P")
+text(4,4,"Q")
+
+###so now you can see quite clearly which points are nearer to which centroids
+
+##tho u can also calculate using Euclidean distance
+
+```
+
+
+(b) Compute the new centroids for the two clusters based on cluster assignment in (a).
+```{r 10:1b, echo=TRUE}
+#P now has A and B
+centriodP = c((1+1.5)/2, (1+2)/2)
+
+#Q now has C, D, E
+centriodQ = c((3+3.5+4.5)/3, (4+5+5)/3)
+
+#im more or less literally doing averages btw
+
+#but note that we're finding the MIDPOINT of all the points belonging to the different clusters
+
+#and previous proposed centriods (not part of OG dataset) is removed / not considered
+
+centriodP; centriodQ
+
+```
+
+
+(c) Based on the centroids computed in (b), identify the objects in each cluster during the second iteration of the k-means algorithm.
+```{r 10:1c, echo=TRUE}
+plot(objs)
+
+points(centriodP[1], centriodP[2], pch = 10, col = "green")
+points(centriodQ[1], centriodQ[2], pch = 10, col = "green")
+
+text(1.35, 1.4, "C-P-new")
+text(4, 4, "C-Q-new")
+```
+
+note that since the points identified for the different clusters remains the same, the algorithm is converged! stable!
+
+
+(d) Calculate the Within Sum of Squares (WSS) for the clustering assignment in (c).
+```{r 10:1d, echo=TRUE}
+data = data.frame(x1, x2)
+data
+kout = kmeans(data, centers = 2)
+kout
+
+kout$withinss
+kout$tot.withinss #tbh idk what this one is doing 
+
+```
+
+
+(K-Means) Consider data set hdb-2012-to-2014.csv which was extracted from the published data 1
+
+The file has information on the HDB resale flats from Jan 2012 to Dec 2014.
+
+(a) Load data into R. Use k means algorithm to pick an optimal value for k in term of WSS, based on two variables, resale_price and floor_area_sqm.
+```{r 10:2a, echo=TRUE}
+sendhelp = read.csv("~/Github/DSA1101 Slayers/datasets/hdb-2012-to-2014.csv")
+attach(sendhelp)
+
+plot(floor_area_sqm, resale_price)#so we notice that the resale price is damnn high compared to the floor_area_sqm => MUST SCALE FEATURES
+
+skibbidi = c() #putting all the wss here
+
+for (i in 1:15) {
+  skibbidi[i] = sum(kmeans(scale(sendhelp[,c("floor_area_sqm","resale_price")]), centers=i)$withinss)
+}
+plot(1:15, skibbidi, type = "b")
+
+
+kdata = scale(sendhelp[, c("floor_area_sqm","resale_price")])
+wss = numeric(15)
+
+for (i in 1:15) {
+  wss[i] = sum(kmeans(kdata, centers = i)$withinss)
+}
+
+plot(1:15, wss, type = "b")
+
+```
+
+(b) With the optimal k in part (a), plot the data points in the k clusters determined.
+```{r 10:2b, echo=TRUE}
+kout = kmeans(kdata, centers = 3)
+
+plot(kdata[, "floor_area_sqm"], kdata[, "resale_price"], col = kout$cluster)
+```
+
+# Tutorial 11 (Topic 9): association rules
+
+A local retailer has a database that stores 10,000 transactions of last summer. After analyzing the data, a data science team has identified the following statistics:
+
+- {battery} appears in 6000 transactions
+- {sunscreen} appears in 5000 transactions
+- {sandals} appears in 4000 transactions
+- {bowls} appears in 2000 transactions
+- {battery, sunscreen} appears in 1500 transactions
+- {battery, sandals} appears in 1000 transactions
+- {battery, bowls} appears in 250 transactions
+- {battery, sunscreen, sandals} appears in 600 transactions
+
+(a) What are the support values of the preceding itemsets?
+```{r 11:1a, echo=TRUE}
+
+```
+
+(b) Assuming the minimum support is 0.05, which itemsets are considered frequent
+```{r 11:1b, echo=TRUE}
+
+```
+
+(c) What are the confidence values of {battery} → {sunscreen} and {battery, sunscreen} → {sandals}? Which of these two rules is more interesting, i.e. has higher values of confidence?
+```{r 11:1c, echo=TRUE}
+
+```
+
+2. Suppose for three products A, B and C, support({A}) = 0.6, support({B}) = 0.6, condence({B} → {A}) = 0.9 and confidence({C} → {A, B}) = 0.5. Compute the following quantities.
+(a) Lift({A} → {B})
+(b) Leverage({A} → {B})
+(c) Condence({A} → {B})
+(d) Lift({A, B} → {C})
+
+
+# Lecture 11 (Topic 9)
+
+```{r lect11, echo=TRUE}
+library("arules")
+library("arulesViz")
+
+data(Groceries) #alr installed in R library arules; everyone can access it
+
+#sparse matrix: specifically for association rules, stored in a dot and slash format
+summary(Groceries)
+inspect(head(Groceries)) #inspect is under library arules
+
+inspect(head(Groceries, 10)) #inspect first 10 itemsets instead of first 6
+
+Groceries@itemInfo[1:10,] #all columns
+Groceries@data[,100:110] #all rows
+#sparse matrix: specifically for association rules, stored in a dot and slash format
+
+#see the items for the first 5 transactions
+apply(Groceries@data[,1:5], 2,
+      function(r) paste(Groceries@itemInfo[r, "labels"], collapse = ", "))
+
+#2: 2nd column
+#so this converts the sparse matrix into a readable itemset 
+
+#see the items for 100 to 105th transactions (index)
+apply(Groceries@data[,100:105], 2,
+      function(r) paste(Groceries@itemInfo[r, "labels"], collapse = ", "))
+
+```
+
+

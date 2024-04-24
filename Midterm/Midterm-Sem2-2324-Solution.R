@@ -221,7 +221,7 @@ rpart.plot(fit, type=4, extra=2, clip.right.labs=FALSE, varlen=0, faclen = 0)
 
 # USING predict FUNCTION:
 new = data[,1:4] # all the 4 features from the data set, no response age or Year.
-prediction = predict(fit, new.data = new,type='class')
+prediction = predict(fit, new.data = new,type='class') #this is a fucking lie use newdata instead of new.data unless uk what ur doing
 
 confusion.matrix = table(prediction, Year)
 confusion.matrix
