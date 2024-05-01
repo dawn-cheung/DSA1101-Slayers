@@ -168,12 +168,24 @@ A local retailer has a database that stores 10,000 transactions of last summer. 
 
 (a) What are the support values of the preceding itemsets?
 ```{r 11:1a, echo=TRUE}
+sigh = c()
+
+batsup = 6000 / 10000
+sunsup = 5000 / 10000
+sansup = 4000 / 10000
+bowsup = 2000 / 10000
+bat_sun_sup = 1500 / 10000
+bat_san_sup = 1000 / 10000
+bat_bow_sup = 250 / 10000
+bat_sun_san_sup = 600 / 10000
+
+sigh = c(batsup, sunsup, sansup, bowsup, bat_sun_sup, bat_san_sup, bat_bow_sup, bat_sun_san_sup)
 
 ```
 
-(b) Assuming the minimum support is 0.05, which itemsets are considered frequent
+(b) Assuming the minimum support is 0.05, which itemsets are considered frequent?
 ```{r 11:1b, echo=TRUE}
-
+sigh[which(sigh > 0.05)] #then manually list the itemsets idk
 ```
 
 (c) What are the confidence values of {battery} → {sunscreen} and {battery, sunscreen} → {sandals}? Which of these two rules is more interesting, i.e. has higher values of confidence?
@@ -184,8 +196,11 @@ A local retailer has a database that stores 10,000 transactions of last summer. 
 2. Suppose for three products A, B and C, support({A}) = 0.6, support({B}) = 0.6, condence({B} → {A}) = 0.9 and confidence({C} → {A, B}) = 0.5. Compute the following quantities.
 (a) Lift({A} → {B})
 (b) Leverage({A} → {B})
-(c) Condence({A} → {B})
+(c) Confidence({A} → {B})
 (d) Lift({A, B} → {C})
+```{r 11:2, echo=TRUE}
+
+```
 
 
 # Lecture 11 (Topic 9)
@@ -203,7 +218,7 @@ inspect(head(Groceries)) #inspect is under library arules
 inspect(head(Groceries, 10)) #inspect first 10 itemsets instead of first 6
 
 Groceries@itemInfo[1:10,] #all columns
-Groceries@data[,100:110] #all rows
+Groceries@data[,100:105] #all rows
 #sparse matrix: specifically for association rules, stored in a dot and slash format
 
 #see the items for the first 5 transactions
@@ -217,6 +232,38 @@ apply(Groceries@data[,1:5], 2,
 apply(Groceries@data[,100:105], 2,
       function(r) paste(Groceries@itemInfo[r, "labels"], collapse = ", "))
 
+
+#get the frequent 1-itemset
+
+
+
+itemset.1 = apriori(Groceries, parameter = list(minlen = 1, maxlen = 1, support = 0.04, target = "frequent itemsets"))
+
+summary(itemset.1)
+inspect(sort(itemset.1, by = "support"))
+
+itemset.2 = apriori(Groceries, parameter = list(minlen = 2, maxlen = 2, support = 0.02, target = "frequent itemsets"))
+
+summary(itemset.2)
+inspect(sort(itemset.2, by = "support", 10)) #limit to the first 10 itemsets
+
+rules = apriori(Groceries, parameter = list(support = 0.001, confidence = 0.6, target = "rules"))
+
+plot(rules)
+
+#limit to only 100 dots / rules with the highest lift
+plot(rules, measure = c("support", "confidence"), shading = "lift", col = "black", limit = 100)
+
+#attain the top few rules
+inspect(head(sort(rules, by = "lift"), 3))
+#note that 3 is a parameter for head() ie head() controls how many outputs come out
+
+#plot the top 5 rules for visualisation
+highLiftRules = head(sort(rules, by = "lift"), 5)
+plot(highLiftRules, method = "graph", engine = "igraph", edgeCol = "blue", alpha = 1)
+# alpha = c(0,1)
+# the size of the node is sprted by te support
+# the darkness of the node's color represents the change in lift
 ```
 
 

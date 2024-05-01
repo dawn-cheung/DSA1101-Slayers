@@ -27,7 +27,7 @@ prop.table(table(Churned))
 
 ## Generalised Linear Model: glm()
 
-```{r pressure, echo=FALSE}
+```{r pressure, echo=TRUE}
 M1 <- glm(Churned ~ . , # . is all columns except the response col
           data = churn,
           family = binomial(link = "logit")) #logit is default tho
@@ -64,7 +64,7 @@ Remember that we want p-value to be as low as possible.
 We see from the summary stats that the Pr(>|z|) value (ie the p value) for Cust_years is the highest, so lets drop it, and call the new model M2
 
 
-```{r M2, echo=FALSE}
+```{r M2, echo=TRUE}
 M2 <- glm(Churned ~ Age + Married + Churned_contacts,
           data = churn,
           family = binomial) #logit is default
@@ -74,20 +74,22 @@ summary(M2)
 
 We see that the p value for married is still quiet large (0.331), so it is not that significant. Let's do another one lol
 
-```{r M3, echo=FALSE}
+```{r M3, echo=TRUE}
 M3 <- glm(Churned ~ Age + Churned_contacts,
           data = churn,
           family = binomial) #logit is default
 
 summary(M3)
 ```
+Note that M3 is built using train = full data set
+=> the goodness of the model should also use the full dataset
 
 Note that the intercept might be not be significant, but usually keep the intercept in the model, so dont remove it unless removing it makes sense in the data context.
 
 ### ROC and AUC value for log model
 
 log model calculates the probability of Y = 1 => more of a classifer
-Remeber that AUC value is area under the ROC curve
+Remember that AUC value is area under the ROC curve
 ```{r ROC curve, echo=TRUE}
 library(ROCR)
 #note model M3 is built using train = full dataset (row wise)
@@ -104,14 +106,38 @@ auc@y.values[[1]]
 plot(roc , col = "red", main = paste(" Area under the curve :", round(auc@y.values[[1]] ,4)))
 ```
 
-```{r plotting chaos, eval = FALSE, echo=FALSE}
-alpha <- round (as.numeric(unlist(roc@alpha.values)) ,4)
+
+We should choose a lower threshold (than 0.5) when the success criteria is very rare ie a very low percentage of the population will be positive
+
+# how tpr and fpr changes when threshold changes
+```{r plotting chaos, eval = TRUE, echo=TRUE}
+#step 1: extract the alpha(threshold), FPR and TPR values from roc (ie the performance(pred, "tpr", "fpr"))
+
+alpha <- round(as.numeric(unlist(roc@alpha.values)) ,4)
 length(alpha) 
 fpr <- round(as.numeric(unlist(roc@x.values)) ,4)
 tpr <- round(as.numeric(unlist(roc@y.values)) ,4)
 
-cbind(alpha, tpr, fpr)
+plot(alpha, tpr ,xlab ="Threshold", xlim =c(0 ,1) ,
+     ylab = "True positive rate ", type ="l", col = "blue")
+par(new ="True")
+plot(alpha, fpr, xlab ="", ylab ="", axes=F, xlim =c(0, 1) , type ="l", col = "red" )
+axis(side =4) # to create an axis at the 4th side
+mtext(side =4, line =3, "False positive rate")
+text(0.18 ,0.18 , "FPR")
+text(0.58 ,0.58 , "TPR")
+
+# how tpr and fpr changes when threshold changes
+# getting the precise best alpha value
+cbind(alpha, tpr, fpr)[70:150,] #making sure the document isnt too long lol
 ```
 
-for churn data, delta is 0.24 [HELP NOO I NEED REVISIT THE LECTURE]
+We should choose a lower threshold (than 0.5) when the success criteria is very rare ie a very low percentage of the population will be positive
+
+for churn data, delta is around 0.24
+
+this lines up with the prop.table(table(Churned)) value where 0.217875 ppl churned (proportion of 'yes' in the data), so delta should be AROUND there (need not be exact)
+
+The exact delta used is up to you, can depend on the users needs (if they want to prioritise TPR over FPR, etc)
+
 <br>

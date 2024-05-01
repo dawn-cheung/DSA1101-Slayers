@@ -69,7 +69,7 @@ library(rpart)
 
 set.seed(555)
 
-iris = read.csv("C:/Data/iris.csv")
+iris = read.csv("~/Github/DSA1101 Slayers/datasets/iris.csv")
 head(iris)
 names(iris)
 
@@ -110,7 +110,7 @@ test = rbind(data1[test1,], data2[test2,], data3[test3,] ) # test data
 
 fit.iris <- rpart(class ~ .,
 method = "class", data =train, control = rpart.control( minsplit =1),
-parms = list( split ='gini'))
+parms = list( split ='information'))
 
 
 pred = predict(fit.iris, newdata = test[,1:4], type = 'class')
@@ -135,7 +135,7 @@ test = c(1, 2, 3,5, 7)
 library(rpart) 
 library(rpart.plot)
 
-banktrain <- read.csv("C:/Data/bank-sample.csv", header=TRUE)
+banktrain <- read.csv("~/Github/DSA1101 Slayers/datasets/bank-sample.csv", header=TRUE)
 dim(banktrain)
 
 ## drop a few columns to simplify the tree
@@ -163,13 +163,12 @@ cp=10^(-5:5); length(cp)
 misC=rep(0,length(cp)) # a vector to record the rate of mis-classification for each cp
 
 for(i in 1:length(cp)){
-
-      misclass=0
+  misclass=0
 	for (j in 1:n_folds) {
 	 	test <- which(folds_j == j)
 		train=banktrain[-c(test),]
 		fit <- rpart(subscribed ~ job + marital + 
-             	education+default + housing + 
+             	education +d efault + housing + 
              	loan + contact+poutcome, 
              	method="class", 
              	data=train,
@@ -177,9 +176,9 @@ for(i in 1:length(cp)){
              	parms=list(split='information'))
 
 		new.data=data.frame(banktrain[test,c(1:8)])
-            ##predict label for test data based on fitted tree
+    ##predict label for test data based on fitted tree
 		pred=predict(fit,new.data,type='class')
-            misclass = misclass + sum(pred!=banktrain[test,9])
+		misclass = misclass + sum(pred!=banktrain[test,9])
        }
        misC[i]=misclass/n
 }

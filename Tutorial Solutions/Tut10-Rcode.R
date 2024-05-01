@@ -1,6 +1,6 @@
 
 
-setwd("C:/Data")
+setwd("~/Github/DSA1101 Slayers")
 
 
 # Q1

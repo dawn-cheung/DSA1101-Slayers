@@ -262,6 +262,5 @@ legend("bottomright", c("Logistic Regression", "Naive Bayes"), col = c("black", 
 
 ```
 
-TUTORIAL 10 NOTES:
 
 

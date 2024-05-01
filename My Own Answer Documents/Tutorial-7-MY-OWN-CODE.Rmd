@@ -85,34 +85,65 @@ fit <- rpart(class ~ sepal.length + sepal.width + petal.length + petal.width,
              control = rpart.control(minsplit = 1),
              parms = list(split = "information"))
 
-
-setosa = sample(iris[which(class == "Iris-setosa"),])
-virginica = sample(iris[which(class == "Iris-virginica"),])
-versicolor = sample(iris[which(class == "Iris-versicolor"),])
-
-helpp = c()
-place = c()
-
-for (q in 1:5) {
-  for (i in 1:10) {
-    w = ((q-1) * 10) + i
-    place = rbind(place, setosa[w,], virginica[w,], versicolor[w,])
-  }
-  helpp = c(place, helpp)
-}
-
-#OK TOO COMPLICATED LMAO
+#OK OG IDEA WAS TOO COMPLICATED LMAO
 #better idea: split setosa, virginica and vericolor
 # then split each of those 3 grps into 5 groups, randomly
 # then add 1 fold from each of the seperated sub-groups
 
-folds_j1 = 
+n_folds=5 #
+
+folds_j_1 <- sample(rep(1:n_folds, length.out = 50 ))  # for type 1 = setosa
+
+folds_j_2 <- sample(rep(1:n_folds, length.out = 50 ))  # for type 2 = versicolor
+
+folds_j_3 <- sample(rep(1:n_folds, length.out = 50 ))  # for type 2 = virginica
+
+
+table(folds_j_1)
+table(folds_j_2)
+table(folds_j_3)
+
+data1 = iris[1:50,] # data for type 1 = setosa
+data2 = iris[51:100,] # data for type 2 = versicolor
+data3 = iris[101:150,] # data for type 3 = virginica
+
+acc=numeric(n_folds)
+
+j= 1
+
+for (j in 1:n_folds) {
+
+test1 <- which(folds_j_1 == j)
+test2 <- which(folds_j_2 == j)
+test3 <- which(folds_j_3 == j)
+
+train.1=data1[ -test1, ]
+train.2=data2[ -test2, ]
+train.3=data3[ -test3, ]
+
+train = rbind(train.1, train.2, train.3) # this is the training data set
+
+test = rbind(data1[test1,], data2[test2,], data3[test3,] ) # test data 
+
+fit.iris <- rpart(class ~ .,
+method = "class", data =train, control = rpart.control( minsplit =1),
+parms = list(split ='gini'))
+
+
+pred = predict(fit.iris, newdata = test[,1:4], type = 'class')
+
+confusion.matrix = table(pred, test[,5])
+
+acc[j] = sum(diag(confusion.matrix))/sum(confusion.matrix)
+
+}
+acc
+mean(acc) # the accuracy is very high, 0.94
 
 ```
 
 3.  Recall that we studied N-fold cross-validation for the K-nearest neighbor classifier, in which the value of k is varied to control the complexity of the decision surface for the classifier. For decision tree classification, when fitting a tree using function rpart(), we use the argument
-control = rpart.control( minsplit =1) where minsplit = 1 is to specify the minimum number of observations that must exist in a node in
-order for a split to be attempted. By default, minsplit = 20. This minsplit argument helps to draft the complexity of a tree, complex with many layers and branches or simple with few layers and less branches.
+control = rpart.control(minsplit =1) where minsplit = 1 is to specify the minimum number of observations that must exist in a node in order for a split to be attempted. By default, minsplit = 20. This minsplit argument helps to draft the complexity of a tree, complex with many layers and branches or simple with few layers and less branches.
 
 For this control = rpart.control(), there is a similar complexity parameter exists, which is denoted as cp where by default cp = 0.01: control = rpart.control(cp = 0.01).
 
@@ -124,8 +155,58 @@ Consider the data set `bank-sample.csv' we discussed in the lectures. For this e
 
 (a) Randomly split the entire data set into 10 mutually exclusive data sets.
 ```{r 3a, echo=TRUE}
-bakntrain = banktrain[,!names(banktrain) %in% drops]
+banktrain = read.csv("~/Github/DSA1101 Slayers/datasets/bank-sample.csv", header = T)
+
+drops = c("age", "balance", "day", "campaign", "pdays", "previous", "month", "duration")
+
+banktrain = banktrain[,!names(banktrain) %in% drops]
 # returns a list of boonleans
+
+attach(banktrain)
+head(banktrain)
+
+head(banktrain)
+
+## total records in dataset
+n=dim(banktrain)[1]; n
+
+length(which(banktrain[,9] =="yes")) # 211 out of 2000 customers subscribed.
+
+
+## We'll randomly split data into 10 sets of (about) equal size
+# regardless of percentage of "yes" in each set.
+
+n_folds=10
+folds_j <- sample(rep(1:n_folds, length.out = n))
+# this is to randomly sample the indexes of subsets for the observation
+#table(folds_j)
+
+cp=10^(-5:5); length(cp)
+misC=rep(0,length(cp)) # a vector to record the rate of mis-classification for each cp
+
+for(i in 1:length(cp)){
+
+      misclass=0
+	for (j in 1:n_folds) {
+	 	test <- which(folds_j == j)
+		train=banktrain[-c(test),]
+		fit <- rpart(subscribed ~ job + marital + 
+             	education+default + housing + 
+             	loan + contact+poutcome, 
+             	method="class", 
+             	data=train,
+             	control=rpart.control(cp=cp[i]),
+             	parms=list(split='information'))
+
+		new.data=data.frame(banktrain[test,c(1:8)])
+            ##predict label for test data based on fitted tree
+		pred=predict(fit,new.data,type='class')
+            misclass = misclass + sum(pred!=banktrain[test,9])
+       }
+       misC[i]=misclass/n
+}
+
+plot(-log(cp,base=10),misC,type='b')
 ```
 
 
@@ -152,6 +233,7 @@ in the test set.
 #helloes
 #i did not get a word this man said
 #help
+
 ```
 
 
