@@ -98,7 +98,7 @@ perf <- performance(pred , "tpr", "fpr")
 aucGLM = performance(pred, measure = "auc")
 aucGLM@y.values[[1]]
 
-plot(perf , col = "red")
+plot(perf , col = "red", type = "l")
 abline(a=0, b=1, col ="blue", lty =3)#AUC value: 0.9342857
 
 
@@ -151,7 +151,7 @@ perf <- performance(pred , "tpr", "fpr")
 aucNB = performance(pred, measure = "auc")
 aucNB@y.values[[1]] #auc value = 0.9361905
 
-plot(perf , col = "red")
+plot(perf , col = "red", lwd =2)
 abline(a=0, b=1, col ="blue", lty =3)#AUC value: 0.9342857
 
 
@@ -168,12 +168,79 @@ for (i in 2:10){
 }
 
 accuracy
-#best is k = 3
-
+#best is k = 2
 
 
 #Q14
+pred.knn =  knn(standardised.X, standardised.X, data[,1], k=2)
 
+pred.knn.prob= knn(standardised.X, standardised.X, data[,1], k=2, prob = TRUE)
+
+winning.prob = attr(pred.knn.prob, "prob") # to extract the winning probabilities
+
+n = length(data[,1])
+
+prob = numeric(length = n) # n is the length of "test.y" used in knn() above
+
+for (i in 1:n) {
+  prob[i] = ifelse(pred.knn[i] == "yes", winning.prob[i], 1 - winning.prob[i])
+  print(prob)
+} 
+
+helppain = prediction(prob, data[,1]) 
+
+rocObjKNN = performance(helppain, measure = "tpr", x.measure = "fpr")
+
+plot(rocObjKNN, lwd =2, type = "l")
+abline(a=0, b=1, col ="blue", lty =3)
+
+aucLM = performance(pred, measure = "auc")
+aucLM@y.values[[1]] #AUC value = 0.9361905
+
+
+z = c(0, 5, 10)  # 3 points
+z2 = z^2 + z*2+ 10 
+plot(z2~z, type = "l")   #Figure 1
+
+
+x = seq(0,10, 0.5)
+x2 = x^2 + x*2+ 10 
+plot(x2~x, type = "l") # Figure 2
+
+M4 <- rpart(Status ~ .,
+             method = "class",
+             data = data,
+             control = rpart.control(cp = 0.001),
+             parms = list(split = "gini"))
+
+rpart.plot(M4, type = 4, extra = 2, clip.right.labs = FALSE)
+#most important: Alchohol consumption and life expectancy
+
+
+results <- predict(M3, help, type = "raw"); results
+# probability: 0.9845948
+
+score <- predict(M3, data[,2:5], "raw")[,2]
+pred <- prediction(score , data[,1])
+perf <- performance(pred , "tpr", "fpr")
+
+aucNB = performance(pred, measure = "auc")
+aucNB@y.values[[1]] #auc value = 0.9361905
+
+plot(perf , col = "red", lwd =2)
+abline(a=0, b=1, col ="blue", lty =3)#AUC value: 0.9342857
+
+
+#DECSION TREE
+scoreDT <- predict(M4, data[,2:5], type = "prob")[,2]
+predDT <- prediction(scoreDT, data[,1])
+perfDT <- performance(predDT, "tpr", "fpr")
+
+aucDT = performance(predDT, measure = "auc")
+aucDT@y.values[[1]] #auc value = 0.9361905
+
+plot(perfDT, add = TRUE, col = "blue", lwd =2)
+legend("bottomright", c("Naive Bayes", "Decsion Tree"), col = c("red", "blue"), lty = 1)
 
 #Q15
 

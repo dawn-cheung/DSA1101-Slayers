@@ -1,4 +1,5 @@
 
+
 library("rpart")
 library("rpart.plot")
 
@@ -13,7 +14,7 @@ library("rpart.plot")
 # (v) Churned (true/false)-Whether the customer churned
 
 
-churn = read.csv("C:/Data/churn.csv")
+churn = read.csv("~/Github/DSA1101 Slayers/datasets/churn.csv")
 head(churn)
 
 summary(as.factor(churn$Churned))
@@ -168,7 +169,7 @@ for(i in 1:length(cp)){
 	 	test <- which(folds_j == j)
 		train=banktrain[-c(test),]
 		fit <- rpart(subscribed ~ job + marital + 
-             	education +d efault + housing + 
+             	education +default + housing + 
              	loan + contact+poutcome, 
              	method="class", 
              	data=train,

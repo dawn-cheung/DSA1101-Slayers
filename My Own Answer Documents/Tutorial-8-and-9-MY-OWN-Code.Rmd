@@ -137,7 +137,6 @@ ncol(data)
 
 sur = ifelse(Survived == "Yes", 1,0)
 
-sur = as.factor()
 
 data
 
@@ -150,7 +149,7 @@ nb_prediction = predict(M1,
     newdata = data.frame(data[,-ncol(data)]),
     type = "raw")
 
-dt_prediction = predict(M2, newdata = data.frame(data[,-ncol(data)]), type = "raw")
+dt_prediction = predict(M2, newdata = data.frame(data[,-ncol(data)]), type = "prob")
 
 nb_predicted_score = nb_prediction[,c("Yes")]
 dt_predicted_score = dt_prediction[,c("Yes")]
@@ -163,7 +162,7 @@ dt_pred = prediction(dt_predicted_score, actual_class)
 nb_perf <- performance(nb_pred , "tpr", "fpr")
 dt_perf <- performance(dt_pred , "tpr", "fpr")
 
-auc1 <- performance(pre_nb, "auc")@y.values[[1]]
+auc1 <- performance(nb_pred, "auc")@y.values[[1]]
 
 ```
 

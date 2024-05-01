@@ -168,7 +168,7 @@ head(banktrain)
 head(banktrain)
 
 ## total records in dataset
-n=dim(banktrain)[1]; n
+n = dim(banktrain)[1]; n
 
 length(which(banktrain[,9] =="yes")) # 211 out of 2000 customers subscribed.
 
@@ -185,35 +185,34 @@ cp=10^(-5:5); length(cp)
 misC=rep(0,length(cp)) # a vector to record the rate of mis-classification for each cp
 
 for(i in 1:length(cp)){
-
-      misclass=0
+  misclass = 0
 	for (j in 1:n_folds) {
-	 	test <- which(folds_j == j)
-		train=banktrain[-c(test),]
+	 	test = which(folds_j == j)
+		train = banktrain[-c(test),]
 		fit <- rpart(subscribed ~ job + marital + 
-             	education+default + housing + 
+             	education + default + housing + 
              	loan + contact+poutcome, 
              	method="class", 
              	data=train,
              	control=rpart.control(cp=cp[i]),
              	parms=list(split='information'))
-
 		new.data=data.frame(banktrain[test,c(1:8)])
-            ##predict label for test data based on fitted tree
-		pred=predict(fit,new.data,type='class')
-            misclass = misclass + sum(pred!=banktrain[test,9])
-       }
-       misC[i]=misclass/n
+    ##predict label for test data based on fitted tree
+		pred = predict(fit,new.data,type='class')
+		misclass = misclass + sum(pred != banktrain[test,9])
+		}
+    misC[i]=misclass/n
 }
 
 plot(-log(cp,base=10),misC,type='b')
+#smth's very wrong here but uhhh yeah concept shld be there LOL
 ```
 
 
 (b) Let cp take on the values 10k for k = −5, −4, ..., 0, ..., 3, 4, 5.
 ```{r 3b, echo=TRUE}
 #helloes
-cp = 
+#cp = 
 ```
 
 
@@ -230,9 +229,7 @@ in the test set.
 
 (d) Determine the best cp value in terms of mis-classification error rate
 ```{r 3d, echo=TRUE}
-#helloes
-#i did not get a word this man said
-#help
+print("huh")
 
 ```
 
